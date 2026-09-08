@@ -1,0 +1,255 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client"
+  previewFeatures = ["postgresqlExtensions"]
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// ----------------------------------------------------------------------------------------
+// Identity & Auth
+// ----------------------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String? // credentials provider (argon2); null for OAuth-only users
+  bio           String?
+  homeLocation  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  oauthAccounts  OAuthAccount[]
+  refreshTokens  RefreshToken[]
+  trips          Trip[]             @relation("TripOwner")
+  collaborations TripCollaborator[]
+  posts          Post[]
+  comments       Comment[]
+  likes          Like[]
+  followers      Follow[]           @relation("Follower")
+  following      Follow[]           @relation("Following")
+
+  @@map("users")
+}
+
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String //Google ,Github etc 
+  providerAccountId String
+  createdAt         DateTime @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ----------------------------------------------------------------------------------------
+// Planning: trips & itineraries
+// ----------------------------------------------------------------------------------------
+
+model Trip {
+  id           String       @id @default(cuid())
+  ownerId      String
+  owner        User         @relation("TripOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  startDate    DateTime?
+  endDate      DateTime?
+  budgetLevel  BudgetLevel?
+  interests    String[]
+  visibility   Visibility   @default(PRIVATE)
+  sourceTripId String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  days          ItineraryDay[]
+  collaborators TripCollaborator[]
+
+  @@index([ownerId])
+  @@index([visibility])
+  @@map("trips")
+}
+
+model ItineraryDay {
+  id        String    @id @default(cuid())
+  tripId    String
+  trip      Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  dayNumber Int
+  date      DateTime?
+  summary   String?
+
+  activities Activity[]
+
+  @@index([tripId, dayNumber])
+  @@map("itinerary_days")
+}
+
+model Activity {
+  id            String       @id @default(cuid())
+  dayId         String
+  day           ItineraryDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  order         Int
+  timeSlot      TimeSlot?
+  title         String
+  locationName  String?
+  lat           Float?
+  lng           Float?
+  notes         String?
+  estimatedCost Int?
+
+  @@index([dayId])
+  @@map("activities")
+}
+
+model TripCollaborator {
+  tripId String
+  userId String
+  role   CollaboratorRole @default(EDITOR)
+  trip   Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([tripId, userId])
+  @@index([userId])
+  @@map("trip_collaborators")
+}
+
+// ----------------------------------------------------------------------------------------
+// Content: blog posts
+// ----------------------------------------------------------------------------------------
+
+model Post {
+  id           String     @id @default(cuid())
+  authorId     String
+  author       User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title        String
+  slug         String     @unique
+  contentJson  Json
+  coverImage   String?
+  tags         String[]
+  status       PostStatus @default(DRAFT)
+  linkedTripId String?
+  publishedAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  likes    Like[]
+  comments Comment[]
+
+  @@index([authorId])
+  @@index([status])
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@map("comments")
+}
+
+// ----------------------------------------------------------------------------------------
+// Community: likes & follows
+// ----------------------------------------------------------------------------------------
+
+model Like {
+  userId String
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([postId])
+  @@map("likes")
+}
+
+model Follow {
+  followerId  String
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+// ----------------------------------------------------------------------------------------
+// AI prompt cache
+// ----------------------------------------------------------------------------------------
+
+model AiCache {
+  key       String   @id //sha256 of (operation + normalized input)
+  response  Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@map("ai_cache")
+}
+
+// ----------------------------------------------------------------------------------------
+// Enums
+// ----------------------------------------------------------------------------------------
+
+enum Visibility {
+  PRIVATE
+  PUBLIC
+  UNLISTED
+}
+
+enum BudgetLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum CollaboratorRole {
+  VIEWER
+  EDITOR
+}
+
+enum TimeSlot {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
