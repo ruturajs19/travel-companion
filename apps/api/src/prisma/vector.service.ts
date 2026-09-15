@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma.service.js';
-import { Prisma } from '../generated/client.js';
+import { Prisma } from '@prisma/client';
 
 export interface VectorSearchResult {
   id: string;

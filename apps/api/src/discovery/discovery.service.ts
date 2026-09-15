@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AiService } from '../ai/ai.service.js';
 import { VectorService } from '../prisma/vector.service.js';
-import type { Prisma } from '../generated/client.js';
+import type { Prisma } from '@prisma/client';
 import {
   buildExcerpt,
   type DiscoveryQuery,
