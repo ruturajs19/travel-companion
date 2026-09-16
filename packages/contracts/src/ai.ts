@@ -21,13 +21,18 @@ export const refineRequestSchema = z.object({
 })
 export type RefineRequest = z.infer<typeof refineRequestSchema>
 
+export const groundedQArequestSchema = z.object({
+    question: z.string().min(1).max(1000),
+    scope: z.string().optional()
+})
+export type GroundedQARequest = z.infer<typeof groundedQArequestSchema>
+
 export const groundedSourceSchema = z.object({
     sourceType: z.string(),
     sourceId: z.string(),
     snippet: z.string()
 })
 export type GroundedSource = z.infer<typeof groundedSourceSchema>
-
 
 export const groundedAnswerSchema = z.object({
     answer: z.string(),
