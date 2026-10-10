@@ -42,6 +42,15 @@ export const tripSchema = z.object({
 
 export type Trip = z.infer<typeof tripSchema>
 
+export const generateItineraryRequestSchema = z.object({
+    destination: z.string().min(2).max(500),
+    durationDays: z.number().int().min(1).max(30),
+    interests: z.array(z.string().min(1)).max(20).default([]),
+    budgetLevel: budgetLevelSchema.optional(),
+    notes: z.string().max(500).optional(),
+})
+export type GenerateItineraryRequest = z.infer<typeof generateItineraryRequestSchema>
+
 export const generatedActivitySchema = z.object({
     timeSlot: timeSlotSchema.nullable().optional(),
     title: z.string().min(1),

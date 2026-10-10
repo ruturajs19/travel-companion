@@ -79,7 +79,7 @@ model Trip {
   ownerId      String
   owner        User         @relation("TripOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   title        String
-  description  String?
+  destination  String
   startDate    DateTime?
   endDate      DateTime?
   budgetLevel  BudgetLevel?
