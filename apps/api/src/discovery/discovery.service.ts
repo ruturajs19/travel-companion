@@ -51,6 +51,7 @@ export class DiscoveryService {
       excerpt: buildExcerpt(markdown),
       coverImage: post.coverImage,
       tags: post.tags,
+      status: post.status,
       readingTimeMinutes: estimateReadingTime(markdown),
       publishedAt: post.publishedAt?.toISOString() ?? null,
       updatedAt: post.updatedAt.toISOString(),
