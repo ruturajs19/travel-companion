@@ -36,6 +36,7 @@ export const postSummarySchema = z.object({
     excerpt: z.string(),
     coverImage: z.string().url().nullable(),
     tags: z.array(z.string()),
+    status: postStatusSchema,
     readingTimeMinutes: z.number().int(),
     publishedAt: z.string().nullable(),
     updatedAt: z.string(),

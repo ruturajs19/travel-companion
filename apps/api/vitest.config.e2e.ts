@@ -1,11 +1,18 @@
 import { defineConfig } from 'vitest/config';
-import tsconfigPaths from 'vite-tsconfig-paths';
+import swc from 'unplugin-swc';
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  plugins: [
+    swc.vite({
+      module: { type: 'es6' },
+    }),
+  ],
   test: {
     globals: true,
+    environment: 'node',
+    include: ['test/**/*.e2e-spec.ts'],
+    setupFiles: ['./test/setup-env.ts'],
     root: './',
-    include: ['**/*.e2e-spec.ts'],
+    testTimeout: 30_000,
   },
 });
