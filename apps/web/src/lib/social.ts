@@ -1,4 +1,5 @@
 import type {
+  Comment,
   FollowStatus,
   LikeStatus,
   PostStats,

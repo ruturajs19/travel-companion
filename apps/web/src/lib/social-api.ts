@@ -1,4 +1,5 @@
 import type {
+  Comment,
   CreateCommentRequest,
   FollowStatus,
   LikeStatus,
