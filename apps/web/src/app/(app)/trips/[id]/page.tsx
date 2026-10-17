@@ -1,3 +1,4 @@
+import { RemixButton } from '@/components/social/remix-button';
 import { CollaboratorsPanel } from '@/components/trips/collaborators-panel';
 import { DeleteTripButton } from '@/components/trips/delete-trip-button';
 import ItineraryEditor from '@/components/trips/itinerary-editor';
