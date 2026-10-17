@@ -6,6 +6,7 @@ import {
   deleteDayRequest,
   refineDayRequest,
   reorderActivitiesRequest,
+  reorderDaysRequest,
   updateActivityRequest,
 } from '@/lib/itinerary-api';
 import { getAccessToken } from '@/lib/session';
@@ -64,6 +65,23 @@ export async function deleteDayAction(
     await deleteDayRequest(t, dayId);
   } catch {
     return { error: 'Failed to delete day. Please try again.' };
+  }
+
+  refresh(tripId);
+  return {};
+}
+
+export async function reorderDaysAction(
+  tripId: string,
+  orderedIds: string[],
+): Promise<ItineraryActionState> {
+  const t = await token();
+  if (!t) return { error: SESSION_EXPIRED };
+
+  try {
+    await reorderDaysRequest(t, tripId, orderedIds);
+  } catch {
+    return { error: 'Failed to reorder days. Please try again.' };
   }
 
   refresh(tripId);

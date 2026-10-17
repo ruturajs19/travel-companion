@@ -1,4 +1,6 @@
+import { CollaboratorsPanel } from '@/components/trips/collaborators-panel';
 import { DeleteTripButton } from '@/components/trips/delete-trip-button';
+import ItineraryEditor from '@/components/trips/itinerary-editor';
 import { getCurrentUser } from '@/lib/current-user';
 import { getTrip, listCollaborators } from '@/lib/trips';
 import { ArrowLeft, MapPin } from 'lucide-react';
