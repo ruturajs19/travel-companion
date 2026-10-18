@@ -3,7 +3,7 @@ import { apiFetch } from './api-client';
 
 export function getDiscoverFeed(params: {
   tag?: string;
-  page?: string;
+  page?: number;
 }): Promise<PaginatedPosts> {
   const search = new URLSearchParams();
   if (params.tag) {

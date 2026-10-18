@@ -1,4 +1,5 @@
 import { Markdown } from '@/components/posts/markdown';
+import { CommentsSection } from '@/components/social/comments-section';
 import { FollowButton } from '@/components/social/follow-button';
 import { LikeButton } from '@/components/social/like-button';
 import { RemixButton } from '@/components/social/remix-button';
