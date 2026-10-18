@@ -11,6 +11,7 @@ import { AuthController } from './auth.controller.js';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from '../config/configuration.js';
+import { OAuthCodeService } from './oauth-code.service.js';
 
 function oauthStrategyProviders(): Provider[] {
   const githubProvider: Provider = {
@@ -48,6 +49,7 @@ function oauthStrategyProviders(): Provider[] {
     PasswordService,
     TokenService,
     AuthService,
+    OAuthCodeService,
     JwtStrategy,
     ...oauthStrategyProviders(),
   ],

@@ -11,7 +11,7 @@ import {
   reorderDaysRequest,
   updateActivityRequest,
 } from '@/lib/itinerary-api';
-import { getAccessToken } from '@/lib/session';
+import { getValidAccessToken } from '@/lib/session';
 import {
   activityInputSchema,
   TimeSlot,
@@ -26,7 +26,7 @@ export interface ItineraryActionState {
 const SESSION_EXPIRED = 'Session expired. Please sign in again.';
 
 async function token(): Promise<string | null> {
-  return (await getAccessToken()) ?? null;
+  return (await getValidAccessToken()) ?? null;
 }
 
 function refresh(tripId: string): void {
@@ -120,8 +120,8 @@ export async function addActivityAction(
 }
 
 export async function updateActivityAction(
-  activityId: string,
   tripId: string,
+  activityId: string,
   formData: FormData,
 ): Promise<ItineraryActionState> {
   const t = await token();
@@ -149,8 +149,8 @@ export async function updateActivityAction(
 }
 
 export async function deleteActivityAction(
-  activityId: string,
   tripId: string,
+  activityId: string,
 ): Promise<ItineraryActionState> {
   const t = await token();
   if (!t) return { error: SESSION_EXPIRED };

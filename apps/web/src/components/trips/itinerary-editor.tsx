@@ -81,14 +81,13 @@ export default function ItineraryEditor({
       <ol className="flex flex-col gap-6">
         {trip.days.map((day, dayIndex) => {
           const activityIds = day.activities.map((a) => a.id);
-          const canMoveDayUp = dayIndex > 0;
           return (
             <li
               key={day.id}
               className="rounded-[var(--radius)] border border-border p-5"
             >
               <div className="mb-3 flex items-center justify-between gap-2">
-                <h2 className="font-semibold">Day {day.dayNumber}</h2>
+                <p className="font-semibold">Day {day.dayNumber}</p>
                 <div className="flex items-center gap-1">
                   <IconButton
                     label={`Move day ${day.dayNumber} up`}
@@ -106,7 +105,7 @@ export default function ItineraryEditor({
                     label={`Move day ${day.dayNumber} down`}
                     disabled={dayIndex === trip.days.length - 1 || isPending}
                     onClick={() => {
-                      const next = movedOrder(dayIds, dayIndex, -1);
+                      const next = movedOrder(dayIds, dayIndex, 1);
                       if (next) {
                         run(() => reorderDaysAction(trip.id, next));
                       }

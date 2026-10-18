@@ -40,7 +40,6 @@ export function RemixButton({
       >
         <Copy className="h-4 w-4" aria-hidden="true" />
         {isPending ? 'Remixing...' : 'Remix this itinerary'}
-        Remix
       </button>
       {error ? (
         <p role="alert" className="text-xs text-red-600">

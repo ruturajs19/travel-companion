@@ -64,7 +64,7 @@ export class TokenService {
 
   async rotateRefreshToken(refreshToken: string): Promise<AuthTokens> {
     const tokenHash = this.hashToken(refreshToken);
-    const stored = await this.prisma.refreshToken.findFirst({
+    const stored = await this.prisma.refreshToken.findUnique({
       where: { tokenHash },
       include: {
         user: true,

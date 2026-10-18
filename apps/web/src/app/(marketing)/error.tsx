@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 
 export default function MarketingError({
-  error,
   reset,
 }: {
   error: Error & { digest?: string };
@@ -13,7 +12,7 @@ export default function MarketingError({
     <div className="mx-auto max-w-md px-4 py-20 text-center" role="alert">
       <h1 className="text-xl font-semibold">Something went wrong</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        We couldn't load this page. Please try again in a moment
+        We couldn&apos;t load this page. Please try again in a moment
       </p>
       <div className="mt-6 flex justify-center">
         <Button onClick={reset}>Try again</Button>

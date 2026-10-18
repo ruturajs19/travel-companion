@@ -31,7 +31,7 @@ export default async function PostsPage() {
           role="alert"
           className="rounded-md border border-border p-6 text-sm text-muted-foreground"
         >
-          We couldn't load your posts right now. Please refresh in a moment.
+          We couldn&apos;t load your posts right now. Please refresh in a moment.
         </p>
       ) : posts.length === 0 ? (
         <div className="rounded-[var(--radius)] border border-dashed border-border p-10 text-center">

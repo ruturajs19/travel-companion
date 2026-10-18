@@ -1,3 +1,4 @@
+import { exchangeCodeRequest } from '@/lib/auth-api';
 import { setSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 
@@ -8,22 +9,24 @@ export default async function OAuthCallbackPage({
 }): Promise<never> {
   const params = await searchParams;
 
-  const accessToken =
-    typeof params.accessToken === 'string' ? params.accessToken : undefined;
-  const refreshToken =
-    typeof params.refreshToken === 'string' ? params.refreshToken : undefined;
-  const expiresInRaw =
-    typeof params.expiresIn === 'string' ? params.expiresIn : undefined;
+  const code =
+    typeof params.code === 'string' ? params.code : undefined;
 
-  if (!accessToken || !refreshToken) {
+  if (!code) {
     redirect('/sign-in?error=oauth');
   }
 
-  const expiresIn = Number.parseInt(expiresInRaw ?? '900', 10);
+  let tokens;
+  try {
+    tokens = await exchangeCodeRequest(code);
+  } catch {
+    redirect('/sign-in?error=oauth');
+  }
+
   await setSession({
-    accessToken,
-    refreshToken,
-    expiresIn: Number.isNaN(expiresIn) ? 900 : expiresIn,
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
+    expiresIn: tokens.expiresIn,
   });
   redirect('/dashboard');
 }

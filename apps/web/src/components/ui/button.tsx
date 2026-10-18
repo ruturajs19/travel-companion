@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { ButtonHTMLAttributes, type ComponentProps, forwardRef } from 'react';
+import { ButtonHTMLAttributes, forwardRef } from 'react';
 
 type Variant = 'primary' | 'outline' | 'ghost';
 type Size = 'sm' | 'md' | 'lg';

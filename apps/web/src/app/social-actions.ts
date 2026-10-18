@@ -1,7 +1,7 @@
 'use server';
 
 import { ApiError, ApiUnreachableError } from '@/lib/api-client';
-import { getAccessToken } from '@/lib/session';
+import { executeWithAuth } from '@/lib/session';
 import {
   addCommentRequest,
   remixTripRequest,
@@ -52,10 +52,11 @@ function friendlyError(error: unknown, fallback: string): string {
 export async function toggleLikeAction(
   postId: string,
 ): Promise<LikeActionResult> {
-  const token = await getAccessToken();
-  if (!token) return { error: SIGNED_OUT };
   try {
-    return { status: await toggleLikeRequest(token, postId) };
+    const status = await executeWithAuth((token) =>
+      toggleLikeRequest(token, postId),
+    );
+    return { status };
   } catch (error) {
     return {
       error: friendlyError(
@@ -76,10 +77,11 @@ export async function addCommentAction(
       error: parsed.error.issues[0]?.message ?? 'Please enter a comment.',
     };
   }
-  const token = await getAccessToken();
-  if (!token) return { error: SIGNED_OUT };
   try {
-    return { comment: await addCommentRequest(token, postId, parsed.data) };
+    const comment = await executeWithAuth((token) =>
+      addCommentRequest(token, postId, parsed.data),
+    );
+    return { comment };
   } catch (error) {
     return {
       error: friendlyError(error, 'Could not add comment. Please try again.'),
@@ -90,10 +92,11 @@ export async function addCommentAction(
 export async function toggleFollowAction(
   userId: string,
 ): Promise<FollowActionResult> {
-  const token = await getAccessToken();
-  if (!token) return { error: SIGNED_OUT };
   try {
-    return { status: await toggleFollowRequest(token, userId) };
+    const status = await executeWithAuth((token) =>
+      toggleFollowRequest(token, userId),
+    );
+    return { status };
   } catch (error) {
     return {
       error: friendlyError(error, 'Could not update follow. Please try again.'),
@@ -104,10 +107,10 @@ export async function toggleFollowAction(
 export async function remixTripAction(
   tripId: string,
 ): Promise<RemixActionResult> {
-  const token = await getAccessToken();
-  if (!token) return { error: SIGNED_OUT };
   try {
-    const trip = await remixTripRequest(token, tripId);
+    const trip = await executeWithAuth((token) =>
+      remixTripRequest(token, tripId),
+    );
     return { tripId: trip.id };
   } catch (error) {
     return {
@@ -118,3 +121,4 @@ export async function remixTripAction(
     };
   }
 }
+

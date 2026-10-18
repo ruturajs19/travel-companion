@@ -77,7 +77,7 @@ export default async function DiscoverPage({
           {query ? (
             <>
               Semantically results for{' '}
-              <span className="font-medium">"{query}"</span>
+              <span className="font-medium">&quot;{query}&quot;</span>
             </>
           ) : (
             <>
@@ -96,7 +96,7 @@ export default async function DiscoverPage({
           role="alert"
           className="rounded-md border border-border p-6 text-sm text-muted-foreground"
         >
-          We couldn't load stories right now. Please try again in a moment.
+          We couldn&apos;t load stories right now. Please try again in a moment.
         </p>
       ) : items.length === 0 ? (
         <div className="rounded-[var(--radius)] border border-dashed border-border p-10 text-center">

@@ -16,7 +16,7 @@ export default async function TripsPage(): Promise<React.ReactNode> {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">My Trips</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Itineraries you've created with the AI planner
+            Itineraries you&apos;ve created with the AI planner
           </p>
         </div>
         <Link href="/trips/new">
@@ -31,7 +31,7 @@ export default async function TripsPage(): Promise<React.ReactNode> {
           role="alert"
           className="rounded-md border border-border p-6 text-sm text-muted-foreground"
         >
-          We couldn't load your trips right now. Please refresh in a moment.
+          We couldn&apos;t load your trips right now. Please refresh in a moment.
         </p>
       ) : trips.length === 0 ? (
         <div className="rounded-[var(--radius)] border border-dashed border-border p-10 text-center">

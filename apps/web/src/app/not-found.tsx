@@ -10,7 +10,7 @@ export default function NotFound(): React.ReactElement {
       <Compass className="h-10 w-10 text-primary" aria-hidden="true" />
       <h1 className="mt-4 text-2xl font-bold tracking-tight">Page not found</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        We couldn't find the page you're looking for.
+        We couldn&apos;t find the page you&apos;re looking for.
       </p>
       <Link href="/" className="mt-6 text-primary hover:underline">
         Back to home

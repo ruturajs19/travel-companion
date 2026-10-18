@@ -1,7 +1,7 @@
 'use server';
 
 import { ApiError, ApiUnreachableError } from '@/lib/api-client';
-import { getAccessToken } from '@/lib/session';
+import { executeWithAuth } from '@/lib/session';
 import { deleteTripRequest, generateTripRequest } from '@/lib/trips-api';
 import {
   budgetLevelSchema,
@@ -48,14 +48,11 @@ export async function generateTripAction(
     return { fieldErrors };
   }
 
-  const accessToken = await getAccessToken();
-  if (!accessToken) {
-    return { error: 'Your session has expired. Please sign in again.' };
-  }
-
   let tripId: string;
   try {
-    const trip = await generateTripRequest(accessToken, parsed.data);
+    const trip = await executeWithAuth((token) =>
+      generateTripRequest(token, parsed.data),
+    );
     tripId = trip.id;
   } catch (error) {
     if (error instanceof ApiUnreachableError) {
@@ -64,6 +61,9 @@ export async function generateTripAction(
       };
     }
     if (error instanceof ApiError) {
+      if (error.status === 401) {
+        return { error: 'Your session has expired. Please sign in again.' };
+      }
       if (error.status === 429) {
         return { error: 'AI request limit reached. Please try again shortly.' };
       }
@@ -87,9 +87,12 @@ export async function generateTripAction(
 
 export async function deleteTripAction(formData: FormData): Promise<void> {
   const id = formData.get('id') as string;
-  const accessToken = await getAccessToken();
-  if (accessToken && id) {
-    await deleteTripRequest(accessToken, id).catch(() => undefined);
+  if (id) {
+    try {
+      await executeWithAuth((token) => deleteTripRequest(token, id));
+    } catch {
+      // ignore
+    }
   }
   revalidatePath('/trips');
   redirect('/trips');

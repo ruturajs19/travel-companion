@@ -7,7 +7,7 @@ import {
   publishPostRequest,
   updatePostRequest,
 } from '@/lib/posts-api';
-import { getAccessToken } from '@/lib/session';
+import { executeWithAuth } from '@/lib/session';
 import { createPostRequestSchema } from '@travel-companion/contracts';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -29,7 +29,7 @@ function parseForm(formData: FormData) {
 
   return createPostRequestSchema.safeParse({
     title: formData.get('title'),
-    content: {
+    contentJson: {
       format: 'markdown',
       markdown: String(formData.get('markdown') ?? ''),
     },
@@ -61,19 +61,20 @@ export async function createPostAction(
   if (!parsed.success) {
     return toFieldErrors(parsed.error.issues);
   }
-  const token = await getAccessToken();
-  if (!token) {
-    return { error: SESSION_EXPIRED };
-  }
-  let postId: string;
 
   try {
-    const post = await createPostRequest(token, parsed.data);
-    postId = post.id;
-    if (formData.get('intent') === 'publish') {
-      await publishPostRequest(token, postId);
-    }
+    const isPublish = formData.get('intent') === 'publish';
+    await executeWithAuth(async (token) => {
+      const post = await createPostRequest(token, parsed.data);
+      if (isPublish) {
+        await publishPostRequest(token, post.id);
+      }
+      return post;
+    });
   } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      return { error: SESSION_EXPIRED };
+    }
     return { error: 'Could not save your post. Please try again.' };
   }
 
@@ -90,19 +91,23 @@ export async function updatePostAction(
   if (!parsed.success) {
     return toFieldErrors(parsed.error.issues);
   }
-  const token = await getAccessToken();
-  if (!token) {
-    return { error: SESSION_EXPIRED };
-  }
 
   try {
-    await updatePostRequest(token, postId, parsed.data);
-    if (formData.get('intent') === 'publish') {
-      await publishPostRequest(token, postId);
-    }
+    const isPublish = formData.get('intent') === 'publish';
+    await executeWithAuth(async (token) => {
+      await updatePostRequest(token, postId, parsed.data);
+      if (isPublish) {
+        await publishPostRequest(token, postId);
+      }
+    });
   } catch (error) {
-    if (error instanceof ApiError && error.status === 403) {
-      return { error: 'You are not authorized to update this post.' };
+    if (error instanceof ApiError) {
+      if (error.status === 401) {
+        return { error: SESSION_EXPIRED };
+      }
+      if (error.status === 403) {
+        return { error: 'You are not authorized to update this post.' };
+      }
     }
     return { error: 'Could not save your changes. Please try again.' };
   }
@@ -113,12 +118,16 @@ export async function updatePostAction(
 }
 
 export async function deletePostAction(formData: FormData): Promise<void> {
-  const token = await getAccessToken();
   const id = String(formData.get('id') ?? '');
-  if (token && id) {
-    await deletePostRequest(token, id).catch(() => undefined);
+  if (id) {
+    try {
+      await executeWithAuth((token) => deletePostRequest(token, id));
+    } catch {
+      // ignore
+    }
   }
 
   revalidatePath('/posts');
   redirect('/posts');
 }
+

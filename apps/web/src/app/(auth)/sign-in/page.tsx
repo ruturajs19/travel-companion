@@ -24,7 +24,7 @@ export default function SignInPage(): React.ReactElement {
       </div>
       <OAuthButtons />
       <p className="text-center text-sm text-muted-foreground">
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <Link
           href="/sign-up"
           className="font-medium text-primary hover:underline"

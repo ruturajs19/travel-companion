@@ -97,13 +97,13 @@ export function loadConfiguration(): AppConfig {
           'GOOGLE_CLIENT_ID',
           'GOOGLE_CLIENT_SECRET',
           'GOOGLE_CALLBACK_URL',
-          'http://localhost:3001/api/auth/google/callback',
+          'http://localhost:3001/api/v1/auth/google/callback',
         ),
         github: loadOAuthProvider(
           'GITHUB_CLIENT_ID',
           'GITHUB_CLIENT_SECRET',
           'GITHUB_CALLBACK_URL',
-          'http://localhost:3001/api/auth/github/callback',
+          'http://localhost:3001/api/v1/auth/github/callback',
         ),
       },
     },
@@ -140,6 +140,9 @@ export function assertProductionConfig(config: AppConfig): void {
   if (!process.env.JWT_ACCESS_SECRET) missing.push('JWT_ACCESS_SECRET');
   if (!process.env.JWT_REFRESH_SECRET) missing.push('JWT_REFRESH_SECRET');
   if (!process.env.DATABASE_URL) missing.push('DATABASE_URL');
+  if (config.ai.provider === 'gemini' && !process.env.GEMINI_API_KEY) {
+    missing.push('GEMINI_API_KEY');
+  }
   if (missing.length > 0) {
     throw new Error(`Missing PROD env vars: ${missing.join(', ')}`);
   }

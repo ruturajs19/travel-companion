@@ -51,3 +51,10 @@ export function meRequest(
     cache: 'no-store',
   });
 }
+
+/** Exchange a short-lived OAuth one-time code for auth tokens. */
+export function exchangeCodeRequest(code: string): Promise<AuthTokens> {
+  return apiFetch<AuthTokens>(`/auth/exchange/${encodeURIComponent(code)}`, {
+    cache: 'no-store',
+  });
+}

@@ -1,5 +1,5 @@
 'use client';
- 
+
 import {
   GenerateFormState,
   generateTripAction,
@@ -118,5 +118,3 @@ export function TripForm(): React.ReactElement {
     </form>
   );
 }
-
-export const TripFrom = TripForm;

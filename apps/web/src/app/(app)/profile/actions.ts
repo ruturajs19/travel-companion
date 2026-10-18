@@ -1,7 +1,7 @@
 'use server';
 
 import { ApiError, ApiUnreachableError } from '@/lib/api-client';
-import { getAccessToken } from '@/lib/session';
+import { executeWithAuth } from '@/lib/session';
 import { updateProfileRequest } from '@/lib/users-api';
 import { updateProfileRequestSchema } from '@travel-companion/contracts';
 import { revalidatePath } from 'next/cache';
@@ -37,13 +37,8 @@ export async function updateProfileAction(
     return { fieldErrors };
   }
 
-  const accessToken = await getAccessToken();
-  if (!accessToken) {
-    return { error: 'Your session has expired. Please sign in again.' };
-  }
-
   try {
-    await updateProfileRequest(accessToken, parsed.data);
+    await executeWithAuth((token) => updateProfileRequest(token, parsed.data));
   } catch (error) {
     if (error instanceof ApiUnreachableError) {
       return {

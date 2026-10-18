@@ -1,4 +1,3 @@
-import { AssistantChat } from '@/components/assistant/assistant-chat';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {

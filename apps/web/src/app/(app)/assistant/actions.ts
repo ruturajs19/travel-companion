@@ -2,7 +2,7 @@
 
 import { ApiError, ApiUnreachableError } from '@/lib/api-client';
 import { askAssistantRequest } from '@/lib/assistant-api';
-import { getAccessToken } from '@/lib/session';
+import { executeWithAuth } from '@/lib/session';
 import { GroundedAnswer } from '@travel-companion/contracts';
 
 export interface AssistantResult {
@@ -17,12 +17,10 @@ export async function askAssistantAction(
   if (!trimmed) {
     return { error: 'Please enter a question.' };
   }
-  const token = await getAccessToken();
-  if (!token) {
-    return { error: 'Your session has expired. Please sign in again.' };
-  }
   try {
-    const answer = await askAssistantRequest(token, trimmed);
+    const answer = await executeWithAuth((token) =>
+      askAssistantRequest(token, trimmed),
+    );
     return { answer };
   } catch (error) {
     if (error instanceof ApiUnreachableError) {
@@ -31,6 +29,10 @@ export async function askAssistantAction(
       };
     }
     if (error instanceof ApiError) {
+      if (error.status === 401)
+        return {
+          error: 'Your session has expired. Please sign in again.',
+        };
       if (error.status === 429)
         return {
           error: 'AI request limit reached. Please try again later.',
@@ -41,7 +43,7 @@ export async function askAssistantAction(
         };
       if (error.status === 502)
         return {
-          error: 'The AI response could not be understand. Please try again.',
+          error: 'The AI response could not be understood. Please try again.',
         };
     }
     return { error: 'Something went wrong. Please try again.' };

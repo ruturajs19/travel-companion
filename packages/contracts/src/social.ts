@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { userProfileSchema } from './users';
 
 export const likeStatusSchema = z.object({
     liked: z.boolean(),

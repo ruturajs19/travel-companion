@@ -36,7 +36,7 @@ export default async function TripDetailPage({
         <div className="rounded-[var(--radius)] border border-dashed border-border p-10 text-center">
           <h1 className="text-2xl font-semibold">Trip not found</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            It may have been deleted, or you don't have access to it.
+            It may have been deleted, or you don&apos;t have access to it.
           </p>
         </div>
       </div>
