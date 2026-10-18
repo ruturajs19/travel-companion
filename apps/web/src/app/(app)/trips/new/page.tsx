@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { TripForm } from '@/components/trips/trip-form';
 
 export const metadata: Metadata = {
   title: 'Plan a trip',

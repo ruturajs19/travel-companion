@@ -1,4 +1,4 @@
-import { AuthTokens } from '@travel-companion/contracts';
+import 'server-only';
 import { cookies } from 'next/headers';
 
 const ACCESS_COOKIE = 'tc_access';

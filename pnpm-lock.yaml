@@ -169,7 +169,7 @@ importers:
   apps/web:
     dependencies:
       '@travel-companion/contracts':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../packages/contracts
       clsx:
         specifier: ^2.1.1

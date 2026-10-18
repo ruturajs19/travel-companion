@@ -1,3 +1,5 @@
+'use client';
+
 import { PostFormState } from '@/app/(app)/posts/actions';
 import { Post, TripSummary } from '@travel-companion/contracts';
 import { useFormStatus } from 'react-dom';

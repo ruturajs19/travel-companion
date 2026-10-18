@@ -1,3 +1,5 @@
+'use server';
+
 import { ApiError, ApiUnreachableError } from '@/lib/api-client';
 import {
   addActivityRequest,

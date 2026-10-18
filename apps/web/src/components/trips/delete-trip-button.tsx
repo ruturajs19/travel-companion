@@ -1,3 +1,4 @@
+import { deleteTripAction } from '@/app/(app)/trips/actions';
 import { Trash2 } from 'lucide-react';
 
 export function DeleteTripButton({
@@ -6,7 +7,7 @@ export function DeleteTripButton({
   tripId: string;
 }): React.ReactElement {
   return (
-    <form>
+    <form action={deleteTripAction}>
       <input type="hidden" name="id" value={tripId} />
       <button
         type="submit"

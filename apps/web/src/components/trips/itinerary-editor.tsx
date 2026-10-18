@@ -10,7 +10,6 @@ import {
   reorderDaysAction,
   updateActivityAction,
 } from '@/app/(app)/trips/[id]/itinerary-actions';
-import { reorderDaysRequest } from '@/lib/itinerary-api';
 import type { TimeSlot, Trip } from '@travel-companion/contracts';
 import {
   ChevronDown,

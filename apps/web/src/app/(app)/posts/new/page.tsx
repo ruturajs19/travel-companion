@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { createPostAction } from '../actions';
+import { PostEditor } from '@/components/posts/post-editor';
 
 export const metadata: Metadata = {
   title: 'New post',

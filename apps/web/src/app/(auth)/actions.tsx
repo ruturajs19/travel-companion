@@ -1,4 +1,4 @@
-'use-server';
+'use server';
 
 import { ApiError, ApiUnreachableError } from '@/lib/api-client';
 import { loginRequest, logoutRequest, registerRequest } from '@/lib/auth-api';

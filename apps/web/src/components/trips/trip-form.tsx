@@ -1,3 +1,5 @@
+'use client';
+ 
 import {
   GenerateFormState,
   generateTripAction,
@@ -9,7 +11,7 @@ import { SubmitButton } from '../auth/submit-button';
 
 const initialState: GenerateFormState = {};
 
-export function TripFrom(): React.ReactElement {
+export function TripForm(): React.ReactElement {
   const [state, formAction] = useActionState(generateTripAction, initialState);
   return (
     <form
@@ -116,3 +118,5 @@ export function TripFrom(): React.ReactElement {
     </form>
   );
 }
+
+export const TripFrom = TripForm;

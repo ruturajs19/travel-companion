@@ -1,3 +1,5 @@
+'use server';
+
 import { ApiError } from '@/lib/api-client';
 import {
   createPostRequest,

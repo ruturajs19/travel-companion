@@ -1,3 +1,5 @@
+'use client';
+
 import { toggleFollowAction } from '@/app/social-actions';
 import { cn } from '@/lib/utils';
 import { FollowStatus } from '@travel-companion/contracts';

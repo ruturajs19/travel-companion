@@ -1,3 +1,5 @@
+'use client';
+
 import { addCommentAction } from '@/app/social-actions';
 import { Comment } from '@travel-companion/contracts';
 import { MessageCircle } from 'lucide-react';

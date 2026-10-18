@@ -1,3 +1,5 @@
+'use client';
+
 import { askAssistantAction } from '@/app/(app)/assistant/actions';
 import { GroundedAnswer } from '@travel-companion/contracts';
 import { Bot, Send, Sparkles, User } from 'lucide-react';
