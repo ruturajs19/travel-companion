@@ -1,0 +1,5 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "cd ../.. && pnpm --filter @travel-companion/contracts build && pnpm --filter @travel-companion/web build",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile"
+}
