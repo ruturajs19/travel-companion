@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useActionState } from 'react';
 import { AuthFormState, registerAction } from '@/app/(auth)/actions';

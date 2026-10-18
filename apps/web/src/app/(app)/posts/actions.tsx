@@ -7,7 +7,7 @@ import {
   publishPostRequest,
   updatePostRequest,
 } from '@/lib/posts-api';
-import { getAccessToken } from '@/lib/session';
+import { executeWithAuth } from '@/lib/session';
 import { createPostRequestSchema } from '@travel-companion/contracts';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -29,7 +29,7 @@ function parseForm(formData: FormData) {
 
   return createPostRequestSchema.safeParse({
     title: formData.get('title'),
-    content: {
+    contentJson: {
       format: 'markdown',
       markdown: String(formData.get('markdown') ?? ''),
     },
@@ -44,10 +44,21 @@ function toFieldErrors(
 ): { fieldErrors: Record<string, string> } {
   const fieldErrors: Record<string, string> = {};
   for (const issue of issues) {
-    const first = issue.path[0];
-    const key = typeof first === 'string' ? first : '';
-    if (key && !fieldErrors[key]) {
-      fieldErrors[key] = issue.message;
+    const fullKey = issue.path.map(String).join('.');
+    const first = typeof issue.path[0] === 'string' ? issue.path[0] : '';
+    const last =
+      typeof issue.path[issue.path.length - 1] === 'string'
+        ? String(issue.path[issue.path.length - 1])
+        : '';
+
+    if (fullKey && !fieldErrors[fullKey]) {
+      fieldErrors[fullKey] = issue.message;
+    }
+    if (first && !fieldErrors[first]) {
+      fieldErrors[first] = issue.message;
+    }
+    if (last && !fieldErrors[last]) {
+      fieldErrors[last] = issue.message;
     }
   }
   return { fieldErrors };
@@ -61,20 +72,34 @@ export async function createPostAction(
   if (!parsed.success) {
     return toFieldErrors(parsed.error.issues);
   }
-  const token = await getAccessToken();
-  if (!token) {
-    return { error: SESSION_EXPIRED };
-  }
-  let postId: string;
 
   try {
-    const post = await createPostRequest(token, parsed.data);
-    postId = post.id;
-    if (formData.get('intent') === 'publish') {
-      await publishPostRequest(token, postId);
-    }
+    const isPublish = formData.get('intent') === 'publish';
+    await executeWithAuth(async (token) => {
+      const post = await createPostRequest(token, parsed.data);
+      if (isPublish) {
+        await publishPostRequest(token, post.id);
+      }
+      return post;
+    });
   } catch (error) {
-    return { error: 'Could not save your post. Please try again.' };
+    if (error instanceof ApiError) {
+      if (error.status === 401) {
+        return { error: SESSION_EXPIRED };
+      }
+      const apiMsg = Array.isArray(error.body?.message)
+        ? error.body.message.join(', ')
+        : error.body?.message;
+      if (apiMsg) {
+        return { error: apiMsg };
+      }
+    }
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Could not save your post. Please try again.',
+    };
   }
 
   revalidatePath('/posts');
@@ -90,21 +115,36 @@ export async function updatePostAction(
   if (!parsed.success) {
     return toFieldErrors(parsed.error.issues);
   }
-  const token = await getAccessToken();
-  if (!token) {
-    return { error: SESSION_EXPIRED };
-  }
 
   try {
-    await updatePostRequest(token, postId, parsed.data);
-    if (formData.get('intent') === 'publish') {
-      await publishPostRequest(token, postId);
-    }
+    const isPublish = formData.get('intent') === 'publish';
+    await executeWithAuth(async (token) => {
+      await updatePostRequest(token, postId, parsed.data);
+      if (isPublish) {
+        await publishPostRequest(token, postId);
+      }
+    });
   } catch (error) {
-    if (error instanceof ApiError && error.status === 403) {
-      return { error: 'You are not authorized to update this post.' };
+    if (error instanceof ApiError) {
+      if (error.status === 401) {
+        return { error: SESSION_EXPIRED };
+      }
+      if (error.status === 403) {
+        return { error: 'You are not authorized to update this post.' };
+      }
+      const apiMsg = Array.isArray(error.body?.message)
+        ? error.body.message.join(', ')
+        : error.body?.message;
+      if (apiMsg) {
+        return { error: apiMsg };
+      }
     }
-    return { error: 'Could not save your changes. Please try again.' };
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Could not save your changes. Please try again.',
+    };
   }
 
   revalidatePath('/posts');
@@ -113,12 +153,16 @@ export async function updatePostAction(
 }
 
 export async function deletePostAction(formData: FormData): Promise<void> {
-  const token = await getAccessToken();
   const id = String(formData.get('id') ?? '');
-  if (token && id) {
-    await deletePostRequest(token, id).catch(() => undefined);
+  if (id) {
+    try {
+      await executeWithAuth((token) => deletePostRequest(token, id));
+    } catch {
+      // ignore
+    }
   }
 
   revalidatePath('/posts');
   redirect('/posts');
 }
+

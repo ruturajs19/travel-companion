@@ -4,6 +4,8 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
+  Param,
   Post,
   UseGuards,
   Req,
@@ -26,16 +28,18 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe.js';
 import type { AuthenticatedUser } from './jwt.strategy.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { CurrentUser } from './current-user.decorator.js';
-import { GithubAuthGuard, GoogleAuthGuard } from './oauth.guards.js';
+import { GoogleAuthGuard } from './oauth.guards.js';
+import { OAuthCodeService } from './oauth-code.service.js';
 
 @Controller({ version: '1', path: 'auth' })
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly config: ConfigService<AppConfig, true>,
+    private readonly oauthCodes: OAuthCodeService,
   ) {}
 
-  private redirectWithTokens(res: Response, req: Request): void {
+  private async redirectWithTokens(res: Response, req: Request): Promise<void> {
     const { successRedirect, failureRedirect } = this.config.get('auth', {
       infer: true,
     }).oauth;
@@ -44,12 +48,17 @@ export class AuthController {
       res.redirect(failureRedirect);
       return;
     }
-    const params = new URLSearchParams({
-      accessToken: result.tokens.accessToken,
-      refreshToken: result.tokens.refreshToken,
-      expiresIn: String(result.tokens.expiresIn),
-    });
-    res.redirect(`${successRedirect}?${params.toString()}`);
+    // Issue a short-lived one-time code instead of putting tokens in the URL.
+    // The web /auth/callback page exchanges this code for tokens via GET /auth/exchange/:code.
+    const code = await this.oauthCodes.issueCode(result.tokens);
+    res.redirect(`${successRedirect}?code=${encodeURIComponent(code)}`);
+  }
+
+  @Get('exchange/:code')
+  async exchangeCode(
+    @Param('code') code: string,
+  ): Promise<AuthTokens> {
+    return this.oauthCodes.redeemCode(code);
   }
 
   @Post('register')
@@ -85,18 +94,18 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  me(@CurrentUser() user: AuthenticatedUser): { id: string; email: string } {
-    return { id: user.id, email: user.email };
-  }
-
-  @Get('github')
-  @UseGuards(GithubAuthGuard)
-  githubStart(): void {}
-
-  @Get('github/callback')
-  @UseGuards(GithubAuthGuard)
-  githubCallback(@Req() req: Request, @Res() res: Response): void {
-    this.redirectWithTokens(res, req);
+  me(@CurrentUser() user: AuthenticatedUser): {
+    id: string;
+    email: string;
+    name?: string | null;
+    image?: string | null;
+  } {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+    };
   }
 
   @Get('google')

@@ -1,5 +1,4 @@
 import { OAuthButtons } from '@/components/auth/oauth-buttons';
-import { SignInForm } from '@/components/auth/sign-in-form';
 import { SignUpForm } from '@/components/auth/sign-up-form';
 import { Metadata } from 'next';
 import Link from 'next/link';

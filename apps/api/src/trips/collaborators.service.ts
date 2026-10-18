@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 import type {
   CollaboratorRole,
   Trip,
@@ -84,7 +84,7 @@ export class CollaboratorsService {
     };
   }
 
-  async remove(ownerId: string, tripId: string, userId: string) {
+  async remove(ownerId: string, tripId: string, userId: string): Promise<void> {
     await assertOwnsTrip(this.prisma, ownerId, tripId);
     await this.prisma.tripCollaborator
       .delete({

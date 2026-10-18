@@ -85,8 +85,12 @@ export async function loginAction(
       return { error: WAKING_MESSAGE };
     }
     if (error instanceof ApiError && error.status === 401) {
+      const message =
+        error.message && error.message !== 'Invalid credentials'
+          ? error.message
+          : 'Invalid email or password.';
       return {
-        fieldErrors: { email: 'Invalid email or password.' },
+        fieldErrors: { email: message },
       };
     }
     return { error: 'Unexpected error. Please try again or contact support.' };

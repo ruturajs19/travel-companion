@@ -38,8 +38,8 @@ export interface RequestOptions extends Omit<RequestInit, 'body'> {
 
 function resolveBaseUrl(): string {
   return (
-    process.env.NEXT_PUBLIC_API_URL ??
     process.env.BACKEND_API_URL ??
+    process.env.NEXT_PUBLIC_API_URL ??
     DEFAULT_BASE_URL
   );
 }
@@ -49,7 +49,9 @@ export async function apiFetch<T>(
   options: RequestOptions = {},
 ): Promise<T> {
   const { body, token, headers, ...rest } = options;
-  const url = `${resolveBaseUrl()}/${path.startsWith('/') ? path : `/${path}`}`;
+  const base = resolveBaseUrl().replace(/\/+$/, '');
+  const cleanPath = path.replace(/^\/+/, '');
+  const url = `${base}/${cleanPath}`;
   const timeoutMs = 60_000;
 
   let response: Response;
@@ -66,8 +68,12 @@ export async function apiFetch<T>(
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-  } catch {
-    throw new ApiUnreachableError();
+  } catch (err) {
+    throw new ApiUnreachableError(
+      err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError')
+        ? 'The request took too long. Please try again.'
+        : 'The server is waking up. Please try again in a few seconds.',
+    );
   }
 
   if (response.status === 204) {

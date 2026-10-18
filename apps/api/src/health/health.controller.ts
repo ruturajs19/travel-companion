@@ -6,6 +6,7 @@ import { type Response } from 'express';
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
+  @Get()
   @Get('check')
   check(): HealthStatus {
     return this.healthService.check();

@@ -1,21 +1,22 @@
 import Link from 'next/link';
 import { PostSummary } from '@travel-companion/contracts';
 import { Clock } from 'lucide-react';
+import { BlogCardPhoto } from '../trips/place-photo';
 
 export function PostCard({ post }: { post: PostSummary }): React.ReactElement {
   return (
-    <li className="overflow-hidden rounded-[var(--radius)] border border-border transition-colors hover:bg-muted">
+    <li className="group overflow-hidden rounded-[var(--radius)] border border-border bg-card transition-all hover:border-border/80 hover:shadow-xs">
       <Link href={`/blog/${post.slug}`} className="block">
-        {post.coverImage ? (
-          <img
-            src={post.coverImage}
-            alt={post.title}
-            className="aspect-video w-full object-cover"
+        <div className="aspect-video w-full overflow-hidden bg-muted">
+          <BlogCardPhoto
+            title={post.title}
+            coverImage={post.coverImage}
+            tags={post.tags}
           />
-        ) : null}
+        </div>
 
         <div className="p-4">
-          <h3 className="font-semibold">{post.title}</h3>
+          <h3 className="font-semibold text-foreground transition-colors group-hover:text-primary">{post.title}</h3>
           {post.excerpt ? (
             <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
               {post.excerpt}

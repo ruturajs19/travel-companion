@@ -14,7 +14,7 @@ import type { TimeSlot, Trip } from '@travel-companion/contracts';
 import {
   ChevronDown,
   ChevronUp,
-  Clock,
+  MapPin,
   Pencil,
   Plus,
   Sparkle,
@@ -25,6 +25,31 @@ import {
 import { useState, useTransition } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { PlacePhotoThumbnail } from './place-photo';
+
+const timeSlotConfig: Record<
+  TimeSlot,
+  { label: string; badge: string; icon: string }
+> = {
+  MORNING: {
+    label: 'Morning',
+    badge:
+      'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+    icon: '🌅',
+  },
+  AFTERNOON: {
+    label: 'Afternoon',
+    badge:
+      'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
+    icon: '☀️',
+  },
+  EVENING: {
+    label: 'Evening',
+    badge:
+      'border-indigo-500/30 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300',
+    icon: '🌙',
+  },
+};
 
 const timeSlotLabels: Record<TimeSlot, string> = {
   MORNING: 'Morning',
@@ -81,14 +106,30 @@ export default function ItineraryEditor({
       <ol className="flex flex-col gap-6">
         {trip.days.map((day, dayIndex) => {
           const activityIds = day.activities.map((a) => a.id);
-          const canMoveDayUp = dayIndex > 0;
           return (
             <li
               key={day.id}
               className="rounded-[var(--radius)] border border-border p-5"
             >
               <div className="mb-3 flex items-center justify-between gap-2">
-                <h2 className="font-semibold">Day {day.dayNumber}</h2>
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+                    {day.dayNumber}
+                  </span>
+                  <div>
+                    <h3 className="font-semibold text-foreground">
+                      Day {day.dayNumber}
+                    </h3>
+                    {day.activities.length > 0 ? (
+                      <p className="text-[11px] text-muted-foreground">
+                        {day.activities.length}{' '}
+                        {day.activities.length === 1
+                          ? 'highlight'
+                          : 'highlights'}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
                 <div className="flex items-center gap-1">
                   <IconButton
                     label={`Move day ${day.dayNumber} up`}
@@ -106,7 +147,7 @@ export default function ItineraryEditor({
                     label={`Move day ${day.dayNumber} down`}
                     disabled={dayIndex === trip.days.length - 1 || isPending}
                     onClick={() => {
-                      const next = movedOrder(dayIds, dayIndex, -1);
+                      const next = movedOrder(dayIds, dayIndex, 1);
                       if (next) {
                         run(() => reorderDaysAction(trip.id, next));
                       }
@@ -138,9 +179,12 @@ export default function ItineraryEditor({
                 </div>
               </div>
               {day.summary ? (
-                <p className="mb-3 text-sm text-muted-foreground">
-                  {day.summary}
-                </p>
+                <div className="mb-3 rounded-md border border-border/60 bg-muted/30 p-3 text-sm">
+                  <span className="font-semibold text-primary">
+                    Day Focus & Stay:{' '}
+                  </span>
+                  <span className="text-foreground/90">{day.summary}</span>
+                </div>
               ) : null}
               {refiningDayId === day.id ? (
                 <RefineDayForm
@@ -161,59 +205,96 @@ export default function ItineraryEditor({
                   }
                 />
               ) : null}
-              <ul className="flex flex-col gap-2">
-                {day.activities.map((activity, actIndex) =>
-                  editingActivityId === activity.id ? (
-                    <li key={activity.id}>
-                      <ActivityEditForm
-                        defaultTitle={activity.title}
-                        defaultTimeSlot={activity.timeSlot}
-                        defaultLocation={activity.locationName}
-                        onSubmit={(formData) =>
-                          run(async () => {
-                            const result = await updateActivityAction(
-                              trip.id,
-                              activity.id,
-                              formData,
-                            );
-                            if (!result.error) {
-                              setEditingActivityId(null);
-                            }
-                            return result;
-                          })
-                        }
-                        onCancel={() => setEditingActivityId(null)}
-                      />
-                    </li>
-                  ) : (
-                    <li
-                      key={activity.id}
-                      className="flex items-start justify-between gap-3 rounded-md border border-border px-3 py-2"
-                    >
-                      <div className="flex gap-3">
-                        <span className="mt-0.5 flex w-20 shrink-0 items-center gap-1 text-xs font-medium text-primary">
-                          {activity.timeSlot ? (
-                            <>
-                              <Clock
-                                className="h-3.5 w-3.5"
-                                aria-hidden="true"
-                              />
-                              {timeSlotLabels[activity.timeSlot]}
-                            </>
-                          ) : null}
-                        </span>
-                        <div>
-                          <p className="text-sm text-medium">
-                            {activity.title}
-                          </p>
-                          {activity.locationName ? (
-                            <p className="text-xs text-muted-foreground">
-                              {activity.locationName}
+              {day.activities.length === 0 ? (
+                <div className="my-2 flex flex-col items-center justify-center rounded-lg border border-dashed border-border/70 bg-muted/20 p-5 text-center text-xs text-muted-foreground">
+                  <MapPin className="mb-1.5 h-4 w-4 text-primary/60" />
+                  <p className="font-medium text-foreground/80">
+                    No activities on Day {day.dayNumber} yet
+                  </p>
+                  <p className="mt-0.5 text-muted-foreground">
+                    Use &quot;Add activity&quot; below or click ✨ to let AI
+                    suggest highlights.
+                  </p>
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-2.5">
+                  {day.activities.map((activity, actIndex) =>
+                    editingActivityId === activity.id ? (
+                      <li key={activity.id}>
+                        <ActivityEditForm
+                          defaultTitle={activity.title}
+                          defaultTimeSlot={activity.timeSlot}
+                          defaultLocation={activity.locationName}
+                          defaultNotes={activity.notes}
+                          onSubmit={(formData) =>
+                            run(async () => {
+                              const result = await updateActivityAction(
+                                trip.id,
+                                activity.id,
+                                formData,
+                              );
+                              if (!result.error) {
+                                setEditingActivityId(null);
+                              }
+                              return result;
+                            })
+                          }
+                          onCancel={() => setEditingActivityId(null)}
+                        />
+                      </li>
+                    ) : (
+                      <li
+                        key={activity.id}
+                        className="group flex flex-col sm:flex-row sm:items-start justify-between gap-3 rounded-lg border border-border bg-card p-3.5 transition-all hover:border-border/80 hover:shadow-xs"
+                      >
+                        <div className="flex flex-1 gap-3">
+                          <PlacePhotoThumbnail
+                            title={activity.title}
+                            locationName={activity.locationName}
+                            notes={activity.notes}
+                            destination={trip.destination}
+                            size="md"
+                          />
+                          <div className="flex-1 space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {activity.timeSlot ? (
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${timeSlotConfig[activity.timeSlot].badge}`}
+                                >
+                                  <span>
+                                    {timeSlotConfig[activity.timeSlot].icon}
+                                  </span>
+                                  <span>
+                                    {timeSlotConfig[activity.timeSlot].label}
+                                  </span>
+                                </span>
+                              ) : null}
+                              {activity.estimatedCost != null ? (
+                                <span className="inline-block rounded-md border border-border/60 bg-muted px-2 py-0.5 text-[10px] font-medium text-foreground">
+                                  Est. ${activity.estimatedCost}
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="text-sm font-semibold text-foreground">
+                              {activity.title}
+                            </p>
+                            {activity.locationName ? (
+                              <p className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                                <MapPin
+                                  className="h-3 w-3 shrink-0 text-primary/70"
+                                  aria-hidden="true"
+                                />
+                                {activity.locationName}
+                              </p>
+                            ) : null}
+                          {activity.notes ? (
+                            <p className="text-xs leading-relaxed text-muted-foreground/90">
+                              {activity.notes}
                             </p>
                           ) : null}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center self-end sm:self-start gap-1">
                         <IconButton
                           label={`Move "${activity.title}" up`}
                           disabled={actIndex === 0 || isPending}
@@ -270,6 +351,7 @@ export default function ItineraryEditor({
                   ),
                 )}
               </ul>
+            )}
               <AddActivityForm
                 onSubmit={(formData) =>
                   run(() => addActivityAction(trip.id, day.id, formData))
@@ -313,7 +395,7 @@ function IconButton({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`inline-flex h-8 w-8 items-center justify-center rounded-md border border-border transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-40 ${destructive ? 'text-red-600 hover:bg-red-500/10' : ''}`}
+      className={`inline-flex h-8 w-8 items-center justify-center rounded-md border border-border transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer disabled:pointer-events-none disabled:opacity-40 disabled:cursor-not-allowed ${destructive ? 'text-red-600 hover:bg-red-500/10' : ''}`}
     >
       {children}
     </button>
@@ -408,12 +490,14 @@ function ActivityEditForm({
   defaultTitle,
   defaultTimeSlot,
   defaultLocation,
+  defaultNotes,
   onSubmit,
   onCancel,
 }: {
   defaultTitle: string;
   defaultTimeSlot: TimeSlot | null;
   defaultLocation: string | null;
+  defaultNotes?: string | null;
   onSubmit: (formData: FormData) => void;
   onCancel: () => void;
 }): React.ReactElement {
@@ -450,6 +534,13 @@ function ActivityEditForm({
           aria-label="Location"
         />
       </div>
+      <Input
+        name="notes"
+        placeholder="Notes, recommendations, restaurant tips (optional)"
+        className="h-9 w-full"
+        defaultValue={defaultNotes ?? ''}
+        aria-label="Notes"
+      />
       <div className="flex gap-2">
         <Button type="submit" size="sm">
           Save

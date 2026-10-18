@@ -1,22 +1,30 @@
 import { Button } from '@/components/ui/button';
+import { TripsList } from '@/components/trips/trips-list';
+import { getCurrentUser } from '@/lib/current-user';
 import { listTrips } from '@/lib/trips';
-import { MapPin, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'My Trips',
 };
 
 export default async function TripsPage(): Promise<React.ReactNode> {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect('/sign-in');
+  }
+
   const trips = await listTrips();
   return (
     <div className="mx-auto max-w-4xl">
-      <header className="flex items-center justify-between">
+      <header className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">My Trips</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Itineraries you've created with the AI planner
+            Itineraries you&apos;ve created with the AI planner
           </p>
         </div>
         <Link href="/trips/new">
@@ -31,7 +39,7 @@ export default async function TripsPage(): Promise<React.ReactNode> {
           role="alert"
           className="rounded-md border border-border p-6 text-sm text-muted-foreground"
         >
-          We couldn't load your trips right now. Please refresh in a moment.
+          We couldn&apos;t load your trips right now. Please refresh in a moment.
         </p>
       ) : trips.length === 0 ? (
         <div className="rounded-[var(--radius)] border border-dashed border-border p-10 text-center">
@@ -45,25 +53,7 @@ export default async function TripsPage(): Promise<React.ReactNode> {
           </Link>
         </div>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {trips.map((trip) => (
-            <li key={trip.id}>
-              <Link
-                href={`/trips/${trip.id}`}
-                className="block rounded-[var(--radius)] border border-border p-4 transition-colors hover:bg-muted"
-              >
-                <h2 className="font-semibold">{trip.title}</h2>
-                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                  {trip.destination}
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {trip.dayCount} {trip.dayCount === 1 ? 'day' : 'days'}
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <TripsList trips={trips} />
       )}
     </div>
   );

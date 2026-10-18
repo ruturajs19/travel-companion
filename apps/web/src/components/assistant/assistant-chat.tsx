@@ -58,7 +58,7 @@ export function AssistantChat(): React.ReactElement {
                   type="button"
                   onClick={() => ask(s)}
                   disabled={isPending}
-                  className="rounded-full border border-border bg-background px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
+                  className="cursor-pointer rounded-full border border-border bg-background px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {s}
                 </button>

@@ -66,6 +66,7 @@ model RefreshToken {
   revokedAt DateTime?
   createdAt DateTime  @default(now())
 
+  @@unique([tokenHash])
   @@index([userId])
   @@map("refresh_tokens")
 }
@@ -104,6 +105,7 @@ model ItineraryDay {
   dayNumber Int
   date      DateTime?
   summary   String?
+  updatedAt DateTime  @updatedAt
 
   activities Activity[]
 
@@ -123,6 +125,7 @@ model Activity {
   lng           Float?
   notes         String?
   estimatedCost Int?
+  updatedAt     DateTime  @updatedAt
 
   @@index([dayId])
   @@map("activities")
@@ -208,6 +211,20 @@ model Follow {
 }
 
 // ----------------------------------------------------------------------------------------
+// OAuth one-time exchange codes (replaces token-in-URL pattern)
+// ----------------------------------------------------------------------------------------
+
+model OAuthCode {
+  code      String   @id
+  payload   Json     // { accessToken, refreshToken, expiresIn }
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@map("oauth_codes")
+}
+
+// ----------------------------------------------------------------------------------------
 // AI prompt cache
 // ----------------------------------------------------------------------------------------
 
@@ -219,6 +236,19 @@ model AiCache {
 
   @@index([expiresAt])
   @@map("ai_cache")
+}
+
+model ContentEmbedding {
+  id         String                     @id
+  sourceId   String                     @map("source_id")
+  sourceType String                     @map("source_type")
+  chunkIndex Int                        @map("chunk_index")
+  content    String
+  embedding  Unsupported("vector(768)")
+  createdAt  DateTime                   @default(now()) @map("created_at")
+
+  @@index([sourceType, sourceId], map: "content_embedding_source_idx")
+  @@map("content_embedding")
 }
 
 // ----------------------------------------------------------------------------------------

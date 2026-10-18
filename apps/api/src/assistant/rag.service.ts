@@ -8,7 +8,7 @@ import type {
   GroundedSource,
 } from '@travel-companion/contracts';
 
-Injectable();
+@Injectable()
 export class RagService {
   private static readonly RELEVANCE_THRESHOLD = 0.6;
   private static readonly TOP_K = 4;

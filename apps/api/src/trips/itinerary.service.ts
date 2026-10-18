@@ -31,9 +31,6 @@ export class ItineraryService {
       where: { id: dayId },
       select: { tripId: true },
     });
-    if (!day) {
-      throw new NotFoundException('Day not found');
-    }
     return day.tripId;
   }
 
@@ -124,12 +121,6 @@ export class ItineraryService {
     }
 
     await this.prisma.$transaction([
-      ...orderedIds.map((id, index) =>
-        this.prisma.itineraryDay.update({
-          where: { id },
-          data: { dayNumber: index + 1 + 1000 },
-        }),
-      ),
       ...orderedIds.map((id, index) =>
         this.prisma.itineraryDay.update({
           where: { id },

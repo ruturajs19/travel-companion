@@ -47,42 +47,37 @@ export class SocialService {
   async toggleLike(userId: string, postId: string): Promise<LikeStatus> {
     await this.assertPostVisible(postId);
 
-    const existing = await this.prisma.like.findUnique({
-      where: { userId_postId: { userId, postId } },
-    });
+    // Attempt create first; if it conflicts (already liked), delete instead.
+    const created = await this.prisma.like
+      .create({ data: { userId, postId } })
+      .then(() => true)
+      .catch((error: unknown) => {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          return false; // already liked — fall through to delete
+        }
+        throw error;
+      });
 
-    if (existing) {
+    if (!created) {
       await this.prisma.like
-        .delete({
-          where: { userId_postId: { userId, postId } },
-        })
+        .delete({ where: { userId_postId: { userId, postId } } })
         .catch((error: unknown) => {
-          if (!(
+          if (
             error instanceof Prisma.PrismaClientKnownRequestError &&
             error.code === 'P2025'
-          )) {
-            throw error;
+          ) {
+            return; // already deleted by a concurrent request — that's fine
           }
-        });
-    } else {
-      await this.prisma.like
-        .create({
-          data: { userId, postId },
-        })
-        .catch((error: unknown) => {
-          if (!(
-            error instanceof Prisma.PrismaClientKnownRequestError &&
-            error.code === 'P2002'
-          )) {
-            throw error;
-          }
+          throw error;
         });
     }
+
     const [liked, count] = await Promise.all([
       this.prisma.like.findUnique({
-        where: {
-          userId_postId: { userId, postId },
-        },
+        where: { userId_postId: { userId, postId } },
       }),
       this.prisma.like.count({ where: { postId } }),
     ]);
@@ -194,11 +189,21 @@ export class SocialService {
     if (!target) {
       throw new NotFoundException('User not found');
     }
-    const existing = await this.prisma.follow.findUnique({
-      where: { followerId_followingId: { followerId, followingId: targetId } },
-    });
+    // Attempt create first; if it conflicts (already following), delete instead.
+    const created = await this.prisma.follow
+      .create({ data: { followerId, followingId: targetId } })
+      .then(() => true)
+      .catch((error: unknown) => {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          return false; // already following — fall through to delete
+        }
+        throw error;
+      });
 
-    if (existing) {
+    if (!created) {
       await this.prisma.follow
         .delete({
           where: {
@@ -206,25 +211,13 @@ export class SocialService {
           },
         })
         .catch((error: unknown) => {
-          if (!(
+          if (
             error instanceof Prisma.PrismaClientKnownRequestError &&
             error.code === 'P2025'
-          )) {
-            throw error;
+          ) {
+            return; // already deleted by a concurrent request — fine
           }
-        });
-    } else {
-      await this.prisma.follow
-        .create({
-          data: { followerId, followingId: targetId },
-        })
-        .catch((error: unknown) => {
-          if (!(
-            error instanceof Prisma.PrismaClientKnownRequestError &&
-            error.code === 'P2002'
-          )) {
-            throw error;
-          }
+          throw error;
         });
     }
 

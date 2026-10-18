@@ -3,6 +3,10 @@
 @theme {
   --color-background: #ffffff;
   --color-foreground: #0a0a0a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0a0a0a;
   --color-muted: #f4f4f5;
   --color-muted-foreground: #71717a;
   --color-border: #e4e4e7;
@@ -17,15 +21,40 @@
   --radius: 0.625rem;
 }
 
+:root {
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0a0a0a;
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+  --color-border: #e4e4e7;
+  --color-primary: #0d9488;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #f0fdfa;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: #0a0a0a;
     --color-foreground: #fafafa;
-    --color-muted: #18181b;
+    --color-card: #18181b;
+    --color-card-foreground: #fafafa;
+    --color-popover: #18181b;
+    --color-popover-foreground: #fafafa;
+    --color-muted: #27272a;
     --color-muted-foreground: #a1a1aa;
     --color-border: #27272a;
     --color-accent: #042f2e;
   }
+}
+
+.bg-card,
+.bg-popover {
+  background-color: var(--color-card) !important;
+  color: var(--color-card-foreground) !important;
 }
 
 * {
@@ -37,6 +66,32 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans);
 }
+
+button,
+[role='button'],
+input[type='submit'],
+input[type='button'],
+input[type='reset'],
+summary {
+  cursor: pointer;
+}
+
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+input[type='submit']:not(:disabled),
+input[type='button']:not(:disabled),
+input[type='reset']:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+[role='button'][aria-disabled='true'],
+input[type='submit']:disabled,
+input[type='button']:disabled,
+input[type='reset']:disabled {
+  cursor: not-allowed;
+}
+
 
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -9,6 +9,8 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export interface AuthenticatedUser {
   id: string;
   email: string;
+  name?: string | null;
+  image?: string | null;
 }
 
 @Injectable()
@@ -30,9 +32,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       select: {
         id: true,
         email: true,
+        name: true,
+        image: true,
       },
     });
     if (!user) throw new UnauthorizedException('Invalid token');
-    return { id: user.id, email: user.email };
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+    };
   }
 }

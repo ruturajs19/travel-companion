@@ -46,3 +46,58 @@ export async function clearSession(): Promise<void> {
   store.delete(ACCESS_COOKIE);
   store.delete(REFRESH_COOKIE);
 }
+
+import { refreshRequest } from './auth-api';
+import { ApiError } from './api-client';
+
+export async function getValidAccessToken(): Promise<string | undefined> {
+  const accessToken = await getAccessToken();
+  if (accessToken) {
+    return accessToken;
+  }
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) {
+    return undefined;
+  }
+  try {
+    const tokens = await refreshRequest(refreshToken);
+    try {
+      await setSession(tokens);
+    } catch {
+      // In read-only Server Component render contexts, setting cookies may throw.
+    }
+    return tokens.accessToken;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function executeWithAuth<T>(
+  action: (accessToken: string) => Promise<T>,
+): Promise<T> {
+  const token = await getValidAccessToken();
+  if (!token) {
+    throw new ApiError(401, undefined, 'Unauthorized');
+  }
+  try {
+    return await action(token);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      const refreshToken = await getRefreshToken();
+      if (refreshToken) {
+        try {
+          const tokens = await refreshRequest(refreshToken);
+          try {
+            await setSession(tokens);
+          } catch {
+            // ignore if cookie store immutable
+          }
+          return await action(tokens.accessToken);
+        } catch {
+          // refresh failed
+        }
+      }
+    }
+    throw error;
+  }
+}
