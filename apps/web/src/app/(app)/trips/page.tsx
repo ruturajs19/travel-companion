@@ -1,18 +1,26 @@
 import { Button } from '@/components/ui/button';
+import { TripCardPhoto } from '@/components/trips/place-photo';
+import { getCurrentUser } from '@/lib/current-user';
 import { listTrips } from '@/lib/trips';
 import { MapPin, Plus } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'My Trips',
 };
 
 export default async function TripsPage(): Promise<React.ReactNode> {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect('/sign-in');
+  }
+
   const trips = await listTrips();
   return (
     <div className="mx-auto max-w-4xl">
-      <header className="flex items-center justify-between">
+      <header className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">My Trips</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -45,21 +53,31 @@ export default async function TripsPage(): Promise<React.ReactNode> {
           </Link>
         </div>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid gap-4 sm:grid-cols-2">
           {trips.map((trip) => (
             <li key={trip.id}>
               <Link
                 href={`/trips/${trip.id}`}
-                className="block rounded-[var(--radius)] border border-border p-4 transition-colors hover:bg-muted"
+                className="group flex flex-col overflow-hidden rounded-[var(--radius)] border border-border bg-card transition-all hover:border-border/80 hover:shadow-md"
               >
-                <h2 className="font-semibold">{trip.title}</h2>
-                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                  {trip.destination}
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {trip.dayCount} {trip.dayCount === 1 ? 'day' : 'days'}
-                </p>
+                <div className="relative h-36 w-full overflow-hidden bg-muted">
+                  <TripCardPhoto
+                    destination={trip.destination}
+                    title={trip.title}
+                  />
+                  <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-0.5 text-[11px] font-medium text-white backdrop-blur-xs">
+                    <MapPin className="h-3 w-3" />
+                    {trip.destination}
+                  </span>
+                </div>
+                <div className="p-4">
+                  <h2 className="font-semibold text-foreground transition-colors group-hover:text-primary">
+                    {trip.title}
+                  </h2>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {trip.dayCount} {trip.dayCount === 1 ? 'day' : 'days'}
+                  </p>
+                </div>
               </Link>
             </li>
           ))}

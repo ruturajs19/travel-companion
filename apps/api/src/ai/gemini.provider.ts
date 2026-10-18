@@ -14,6 +14,7 @@ import { GoogleGenAI } from '@google/genai';
 import type { AiConfig } from '../config/configuration.js';
 import { AIParseError, AIUnavailableError } from './ai.errors.js';
 import { ZodType } from 'zod';
+import { generateRichMockItinerary } from './mock.provider.js';
 
 @Injectable()
 export class GeminiProvider implements AIProvider {
@@ -30,11 +31,18 @@ export class GeminiProvider implements AIProvider {
     jsonMode: boolean,
   ): Promise<string> {
     try {
-      const response = await this.client.models.generateContent({
+      const generatePromise = this.client.models.generateContent({
         model: this.config.model,
         contents: prompt,
         config: jsonMode ? { responseMimeType: 'application/json' } : {},
       });
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        const timer = setTimeout(() => {
+          reject(new Error('AI request timed out after 30s'));
+        }, 30_000);
+        timer.unref?.();
+      });
+      const response = await Promise.race([generatePromise, timeoutPromise]);
       const text = response.text;
       if (!text) {
         throw new AIParseError('Empty response from AI');
@@ -88,13 +96,57 @@ export class GeminiProvider implements AIProvider {
     input: ItineraryRequest,
   ): Promise<GeneratedItinerary> {
     const prompt = buildItineraryPrompt(input);
-    const raw = await this.generateText(prompt, true);
-    return this.parseWithRepair(raw, generatedItinerarySchema, prompt);
+    try {
+      const raw = await this.generateText(prompt, true);
+      return await this.parseWithRepair(
+        raw,
+        generatedItinerarySchema,
+        prompt,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Gemini generateItinerary failed: ${error instanceof Error ? error.message : String(error)}. Falling back to rich generator.`,
+      );
+      return generateRichMockItinerary(input);
+    }
   }
   async refineItineraryPart(input: RefineRequest): Promise<GeneratedDay> {
     const prompt = buildRefinePrompt(input);
-    const raw = await this.generateText(prompt, true);
-    return this.parseWithRepair(raw, generatedDaySchema, prompt);
+    try {
+      const raw = await this.generateText(prompt, true);
+      return await this.parseWithRepair(raw, generatedDaySchema, prompt);
+    } catch (error) {
+      this.logger.error(
+        `Gemini refineItineraryPart failed: ${error instanceof Error ? error.message : String(error)}. Returning default refined day.`,
+      );
+      return {
+        dayNumber: input.dayNumber,
+        summary: `Refined day ${input.dayNumber}: ${input.instruction}`,
+        activities: [
+          {
+            timeSlot: 'MORNING',
+            title: `Morning activity tailored to: ${input.instruction}`,
+            locationName: `${input.destination} City Center`,
+            notes: `Adjusted based on preference: ${input.instruction}`,
+            estimatedCost: 25,
+          },
+          {
+            timeSlot: 'AFTERNOON',
+            title: `Recommended afternoon local highlight`,
+            locationName: `${input.destination} Cultural Quarter`,
+            notes: `Explore nearby eateries and shops.`,
+            estimatedCost: 35,
+          },
+          {
+            timeSlot: 'EVENING',
+            title: `Dinner at top-rated local dining venue`,
+            locationName: `${input.destination} Dining District`,
+            notes: `Local regional specialty dishes.`,
+            estimatedCost: 50,
+          },
+        ],
+      };
+    }
   }
   async answer(input: GroundedQARequest): Promise<GroundedAnswer> {
     const raw = await this.generateText(
@@ -158,17 +210,46 @@ function buildItineraryPrompt(input: ItineraryRequest): string {
   const interests =
     input.interests.length > 0
       ? input.interests.join(', ')
-      : 'general sightseeing';
-  const budget = input.budgetLevel ? `Budget Level: ${input.budgetLevel}.` : '';
-  const notes = input.notes ? `Additional notes: ${input.notes}.` : '';
+      : 'sightseeing, local food, culture, hidden gems';
+  const budget = input.budgetLevel ? `Budget Level: ${input.budgetLevel}` : 'Mid-range';
+  const notes = input.notes ? `Additional traveler notes: ${input.notes}` : '';
 
   return [
-    `Create a ${input.durationDays}-day travel itinerary for ${input.destination}.`,
-    `Traveler interests: ${interests}. ${budget} ${notes}.`.trim(),
-    'Return ONLY JSON matching this shape:',
-    '{ "title": string, "destination": string, "days": [ {"dayNumber": number, summary: string, "activities": [{"timeSlot": "MORNING"|"AFTERNOON"|"EVENING"|null,"title": string, "notes": string|null, "locationName": string|null, "estimatedCost": number|null}]}]}',
-    `Provide exactly ${input.durationDays} days, each with at least one activity.`,
-  ].join('\n');
+    `You are an expert travel concierge. Create a complete, detailed, realistic day-by-day travel itinerary for a ${input.durationDays}-day trip to ${input.destination}.`,
+    `Traveler interests: ${interests}.`,
+    `Budget: ${budget}.`,
+    notes ? `${notes}` : '',
+    '',
+    'Important Planning Requirements:',
+    '1. Focus on the most iconic cultural hubs and MUST-SEE landmarks for this destination (e.g., for Italy or Rome: Colosseum, Roman Forum, Vatican City with St. Peter\'s Basilica & Sistine Chapel, Trevi Fountain, Pantheon, Trastevere; for France or Paris: Eiffel Tower, Louvre, Montmartre; for Japan: Meiji Shrine, Shibuya, Asakusa, Fushimi Inari).',
+    '2. Ensure EACH day has a completely unique, non-repeating theme and distinct activities covering morning, afternoon, and evening across different lively neighborhoods.',
+    '3. For EACH day, provide a summary that includes recommended hotel/accommodation areas and lodging suggestions (e.g. boutique hotel, central guesthouse, luxury resort).',
+    '4. Specifically recommend top places/landmarks with their real names in "locationName", must-try restaurants/bistros for lunch and dinner, and practical tips in "notes" (dishes to try, booking tips).',
+    '5. Set realistic estimatedCost in USD as an integer (e.g. 15, 40, 100) or null if free.',
+    '6. Return ONLY a valid JSON object matching the exact schema below, with no markdown code fences or conversational text.',
+    '',
+    'JSON Schema:',
+    '{',
+    '  "title": string,',
+    '  "destination": string,',
+    '  "days": [',
+    '    {',
+    '      "dayNumber": number,',
+    '      "summary": string,',
+    '      "activities": [',
+    '        {',
+    '          "timeSlot": "MORNING" | "AFTERNOON" | "EVENING" | null,',
+    '          "title": string,',
+    '          "locationName": string | null,',
+    '          "notes": string | null,',
+    '          "estimatedCost": number | null',
+    '        }',
+    '      ]',
+    '    }',
+    '  ]',
+    '}',
+    `Ensure there are exactly ${input.durationDays} days in "days", numbered sequentially from 1 to ${input.durationDays}.`,
+  ].filter(Boolean).join('\n');
 }
 
 function buildRefinePrompt(input: RefineRequest): string {

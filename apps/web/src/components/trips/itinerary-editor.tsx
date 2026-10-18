@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  MapPin,
   Pencil,
   Plus,
   Sparkle,
@@ -25,6 +26,7 @@ import {
 import { useState, useTransition } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { PlacePhotoThumbnail } from './place-photo';
 
 const timeSlotLabels: Record<TimeSlot, string> = {
   MORNING: 'Morning',
@@ -137,9 +139,10 @@ export default function ItineraryEditor({
                 </div>
               </div>
               {day.summary ? (
-                <p className="mb-3 text-sm text-muted-foreground">
-                  {day.summary}
-                </p>
+                <div className="mb-3 rounded-md border border-border/60 bg-muted/30 p-3 text-sm">
+                  <span className="font-semibold text-primary">Day Focus & Stay: </span>
+                  <span className="text-foreground/90">{day.summary}</span>
+                </div>
               ) : null}
               {refiningDayId === day.id ? (
                 <RefineDayForm
@@ -160,7 +163,7 @@ export default function ItineraryEditor({
                   }
                 />
               ) : null}
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-2.5">
                 {day.activities.map((activity, actIndex) =>
                   editingActivityId === activity.id ? (
                     <li key={activity.id}>
@@ -168,6 +171,7 @@ export default function ItineraryEditor({
                         defaultTitle={activity.title}
                         defaultTimeSlot={activity.timeSlot}
                         defaultLocation={activity.locationName}
+                        defaultNotes={activity.notes}
                         onSubmit={(formData) =>
                           run(async () => {
                             const result = await updateActivityAction(
@@ -187,32 +191,53 @@ export default function ItineraryEditor({
                   ) : (
                     <li
                       key={activity.id}
-                      className="flex items-start justify-between gap-3 rounded-md border border-border px-3 py-2"
+                      className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 rounded-md border border-border p-3 transition-colors hover:border-border/80"
                     >
-                      <div className="flex gap-3">
-                        <span className="mt-0.5 flex w-20 shrink-0 items-center gap-1 text-xs font-medium text-primary">
-                          {activity.timeSlot ? (
-                            <>
-                              <Clock
-                                className="h-3.5 w-3.5"
-                                aria-hidden="true"
-                              />
-                              {timeSlotLabels[activity.timeSlot]}
-                            </>
-                          ) : null}
-                        </span>
-                        <div>
-                          <p className="text-sm text-medium">
+                      <div className="flex flex-1 gap-3">
+                        <PlacePhotoThumbnail
+                          title={activity.title}
+                          locationName={activity.locationName}
+                          notes={activity.notes}
+                          destination={trip.destination}
+                          size="md"
+                        />
+                        <div className="flex-1 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {activity.timeSlot ? (
+                              <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+                                <Clock
+                                  className="h-3.5 w-3.5"
+                                  aria-hidden="true"
+                                />
+                                {timeSlotLabels[activity.timeSlot]}
+                              </span>
+                            ) : null}
+                            {activity.estimatedCost != null ? (
+                              <span className="inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground">
+                                Est. ${activity.estimatedCost}
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="text-sm font-semibold">
                             {activity.title}
                           </p>
                           {activity.locationName ? (
-                            <p className="text-xs text-muted-foreground">
+                            <p className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                              <MapPin
+                                className="h-3 w-3 shrink-0 text-primary/70"
+                                aria-hidden="true"
+                              />
                               {activity.locationName}
+                            </p>
+                          ) : null}
+                          {activity.notes ? (
+                            <p className="text-xs leading-relaxed text-muted-foreground/90">
+                              {activity.notes}
                             </p>
                           ) : null}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center self-end sm:self-start gap-1">
                         <IconButton
                           label={`Move "${activity.title}" up`}
                           disabled={actIndex === 0 || isPending}
@@ -312,7 +337,7 @@ function IconButton({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`inline-flex h-8 w-8 items-center justify-center rounded-md border border-border transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-40 ${destructive ? 'text-red-600 hover:bg-red-500/10' : ''}`}
+      className={`inline-flex h-8 w-8 items-center justify-center rounded-md border border-border transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer disabled:pointer-events-none disabled:opacity-40 disabled:cursor-not-allowed ${destructive ? 'text-red-600 hover:bg-red-500/10' : ''}`}
     >
       {children}
     </button>
@@ -407,12 +432,14 @@ function ActivityEditForm({
   defaultTitle,
   defaultTimeSlot,
   defaultLocation,
+  defaultNotes,
   onSubmit,
   onCancel,
 }: {
   defaultTitle: string;
   defaultTimeSlot: TimeSlot | null;
   defaultLocation: string | null;
+  defaultNotes?: string | null;
   onSubmit: (formData: FormData) => void;
   onCancel: () => void;
 }): React.ReactElement {
@@ -449,6 +476,13 @@ function ActivityEditForm({
           aria-label="Location"
         />
       </div>
+      <Input
+        name="notes"
+        placeholder="Notes, recommendations, restaurant tips (optional)"
+        className="h-9 w-full"
+        defaultValue={defaultNotes ?? ''}
+        aria-label="Notes"
+      />
       <div className="flex gap-2">
         <Button type="submit" size="sm">
           Save

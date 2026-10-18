@@ -2,9 +2,10 @@ import { RemixButton } from '@/components/social/remix-button';
 import { CollaboratorsPanel } from '@/components/trips/collaborators-panel';
 import { DeleteTripButton } from '@/components/trips/delete-trip-button';
 import ItineraryEditor from '@/components/trips/itinerary-editor';
+import { TripHeroBanner } from '@/components/trips/place-photo';
 import { getCurrentUser } from '@/lib/current-user';
 import { getTrip, listCollaborators } from '@/lib/trips';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { ArrowLeft, NotebookPen } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 
@@ -48,27 +49,32 @@ export default async function TripDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link
-        href="/trips"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Back to trips
-      </Link>
-      <header className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{trip.title}</h1>
-          <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-            {trip.destination}
-          </p>
-        </div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <Link
+          href="/trips"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Back to trips
+        </Link>
         {isOwner ? (
-          <DeleteTripButton tripId={trip.id} />
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/posts/new?linkedTripId=${trip.id}`}
+              className="inline-flex h-9 items-center gap-1.5 rounded-[var(--radius)] border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              <NotebookPen className="h-4 w-4" aria-hidden="true" />
+              Post this trip
+            </Link>
+            <DeleteTripButton tripId={trip.id} />
+          </div>
         ) : (
           <RemixButton tripId={trip.id} />
         )}
-      </header>
+      </div>
+
+      <TripHeroBanner destination={trip.destination} title={trip.title} />
+
       <ItineraryEditor trip={trip} />
       {isOwner ? (
         <div className="mt-8">

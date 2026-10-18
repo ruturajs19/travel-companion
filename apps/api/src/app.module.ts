@@ -18,6 +18,7 @@ import { SocialModule } from './social/social.module.js';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', '../../.env', '../.env'],
       load: [loadConfiguration],
     }),
     LoggerModule.forRoot(

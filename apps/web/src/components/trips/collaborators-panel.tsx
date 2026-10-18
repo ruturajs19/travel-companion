@@ -85,7 +85,12 @@ export function CollaboratorsPanel({
               <form action={removeCollaboratorAction}>
                 <input type="hidden" name="tripId" value={tripId} />
                 <input type="hidden" name="userId" value={collab.userId} />
-                <button className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+                <button
+                  type="submit"
+                  className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-border text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                  title="Remove collaborator"
+                  aria-label="Remove collaborator"
+                >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               </form>

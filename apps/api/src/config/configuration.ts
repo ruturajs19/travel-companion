@@ -44,7 +44,6 @@ export interface OAuthConfig {
   successRedirect: string;
   failureRedirect: string;
   google?: OAuthProviderConfig;
-  github?: OAuthProviderConfig;
 }
 
 function loadOAuthProvider(
@@ -99,12 +98,6 @@ export function loadConfiguration(): AppConfig {
           'GOOGLE_CALLBACK_URL',
           'http://localhost:3001/api/v1/auth/google/callback',
         ),
-        github: loadOAuthProvider(
-          'GITHUB_CLIENT_ID',
-          'GITHUB_CLIENT_SECRET',
-          'GITHUB_CALLBACK_URL',
-          'http://localhost:3001/api/v1/auth/github/callback',
-        ),
       },
     },
     ai: {
@@ -112,9 +105,9 @@ export function loadConfiguration(): AppConfig {
         (process.env.AI_PROVIDER as AiConfig['provider']) ??
         (process.env.GEMINI_API_KEY ? 'gemini' : 'mock'),
       geminiApiKey: process.env.GEMINI_API_KEY || '',
-      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      model: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
       embeddingModel:
-        process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004',
+        process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001',
       embeddingDimensions: parseInt(process.env.GEMINI_EMBEDDING_DIMS || '768'),
       perMinute: parseInt(process.env.AI_RATE_PER_MINUTE || '10'),
       perDay: parseInt(process.env.AI_RATE_PER_DAY || '200'),

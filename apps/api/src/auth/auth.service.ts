@@ -20,7 +20,7 @@ export interface AuthResult {
 }
 
 export interface OAuthProfile {
-  provider: 'github' | 'google';
+  provider: 'google';
   providerAccountId: string;
   email: string;
   name?: string | null;

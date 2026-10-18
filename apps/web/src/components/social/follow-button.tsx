@@ -45,7 +45,7 @@ export function FollowButton({
         onClick={onClick}
         aria-pressed={status.following}
         className={cn(
-          'inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+          'inline-flex cursor-pointer items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
           status.following
             ? 'border-border bg-muted text-foreground'
             : 'border-primary bg-primary text-primary-foreground hover:opacity-90',

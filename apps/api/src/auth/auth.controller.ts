@@ -28,7 +28,7 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe.js';
 import type { AuthenticatedUser } from './jwt.strategy.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { CurrentUser } from './current-user.decorator.js';
-import { GithubAuthGuard, GoogleAuthGuard } from './oauth.guards.js';
+import { GoogleAuthGuard } from './oauth.guards.js';
 import { OAuthCodeService } from './oauth-code.service.js';
 
 @Controller({ version: '1', path: 'auth' })
@@ -96,16 +96,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   me(@CurrentUser() user: AuthenticatedUser): { id: string; email: string } {
     return { id: user.id, email: user.email };
-  }
-
-  @Get('github')
-  @UseGuards(GithubAuthGuard)
-  githubStart(): void {}
-
-  @Get('github/callback')
-  @UseGuards(GithubAuthGuard)
-  githubCallback(@Req() req: Request, @Res() res: Response): void {
-    this.redirectWithTokens(res, req);
   }
 
   @Get('google')

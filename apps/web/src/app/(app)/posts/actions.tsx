@@ -44,10 +44,21 @@ function toFieldErrors(
 ): { fieldErrors: Record<string, string> } {
   const fieldErrors: Record<string, string> = {};
   for (const issue of issues) {
-    const first = issue.path[0];
-    const key = typeof first === 'string' ? first : '';
-    if (key && !fieldErrors[key]) {
-      fieldErrors[key] = issue.message;
+    const fullKey = issue.path.map(String).join('.');
+    const first = typeof issue.path[0] === 'string' ? issue.path[0] : '';
+    const last =
+      typeof issue.path[issue.path.length - 1] === 'string'
+        ? String(issue.path[issue.path.length - 1])
+        : '';
+
+    if (fullKey && !fieldErrors[fullKey]) {
+      fieldErrors[fullKey] = issue.message;
+    }
+    if (first && !fieldErrors[first]) {
+      fieldErrors[first] = issue.message;
+    }
+    if (last && !fieldErrors[last]) {
+      fieldErrors[last] = issue.message;
     }
   }
   return { fieldErrors };
@@ -72,10 +83,23 @@ export async function createPostAction(
       return post;
     });
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
-      return { error: SESSION_EXPIRED };
+    if (error instanceof ApiError) {
+      if (error.status === 401) {
+        return { error: SESSION_EXPIRED };
+      }
+      const apiMsg = Array.isArray(error.body?.message)
+        ? error.body.message.join(', ')
+        : error.body?.message;
+      if (apiMsg) {
+        return { error: apiMsg };
+      }
     }
-    return { error: 'Could not save your post. Please try again.' };
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Could not save your post. Please try again.',
+    };
   }
 
   revalidatePath('/posts');
@@ -108,8 +132,19 @@ export async function updatePostAction(
       if (error.status === 403) {
         return { error: 'You are not authorized to update this post.' };
       }
+      const apiMsg = Array.isArray(error.body?.message)
+        ? error.body.message.join(', ')
+        : error.body?.message;
+      if (apiMsg) {
+        return { error: apiMsg };
+      }
     }
-    return { error: 'Could not save your changes. Please try again.' };
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Could not save your changes. Please try again.',
+    };
   }
 
   revalidatePath('/posts');

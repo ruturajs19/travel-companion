@@ -13,7 +13,7 @@ export default async function DiscoverPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; tag?: string; page?: string }>;
-}) {
+}): Promise<React.ReactElement> {
   const params = await searchParams;
   const query = params.q?.trim() || '';
   const tag = params.tag?.trim() || undefined;
@@ -36,10 +36,10 @@ export default async function DiscoverPage({
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
+    <div className="mx-auto max-w-5xl">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Discover</h1>
-        <p className="mt-1 text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight">Discover</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Explore travel stories and itineraries shared by the community.
         </p>
       </header>
@@ -66,17 +66,17 @@ export default async function DiscoverPage({
         </div>
         <button
           type="submit"
-          className="inline-flex h-10 items-center rounded-[var(--radius)] bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary-90"
+          className="inline-flex h-10 cursor-pointer items-center rounded-[var(--radius)] bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary-90"
         >
           Search
         </button>
       </form>
 
       {query || tag ? (
-        <p className="mt-4 text-sm text-muted-foreground">
+        <p className="mb-4 text-sm text-muted-foreground">
           {query ? (
             <>
-              Semantically results for{' '}
+              Semantic results for{' '}
               <span className="font-medium">&quot;{query}&quot;</span>
             </>
           ) : (
@@ -84,7 +84,7 @@ export default async function DiscoverPage({
               Tagged <span className="font-medium">#{tag}</span>
             </>
           )}
-          {' . '}
+          {' • '}
           <Link href="/discover" className="text-primary hover:underline">
             Clear
           </Link>
@@ -129,7 +129,10 @@ export default async function DiscoverPage({
             >
               {page > 1 ? (
                 <Link
-                  href={`/discover${new URLSearchParams({ ...(tag ? { tag } : {}), page: String(page - 1) }).toString()}`}
+                  href={`/discover?${new URLSearchParams({
+                    ...(tag ? { tag } : {}),
+                    page: String(page - 1),
+                  }).toString()}`}
                   className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
                 >
                   Previous
@@ -140,7 +143,10 @@ export default async function DiscoverPage({
               </span>
               {page < totalPages ? (
                 <Link
-                  href={`/discover${new URLSearchParams({ ...(tag ? { tag } : {}), page: String(page + 1) }).toString()}`}
+                  href={`/discover?${new URLSearchParams({
+                    ...(tag ? { tag } : {}),
+                    page: String(page + 1),
+                  }).toString()}`}
                   className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
                 >
                   Next

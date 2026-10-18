@@ -3,6 +3,7 @@ import { CommentsSection } from '@/components/social/comments-section';
 import { FollowButton } from '@/components/social/follow-button';
 import { LikeButton } from '@/components/social/like-button';
 import { RemixButton } from '@/components/social/remix-button';
+import { PlacePhotoThumbnail } from '@/components/trips/place-photo';
 import { getCurrentUser } from '@/lib/current-user';
 import { getPublishedPost } from '@/lib/posts';
 import { getComments, getFollowState, getLikeState } from '@/lib/social';
@@ -143,13 +144,46 @@ export default async function BlogPostPage({
                 ) : null}
                 <ul className="mt-2 flex flex-col gap-1.5">
                   {day.activities.map((activity) => (
-                    <li key={activity.id} className="flex gap-2 text-sm">
-                      {activity.timeSlot ? (
-                        <span className="w-20 shrink-0 text-xs font-medium text-primary">
-                          {timeSlotLabels[activity.timeSlot]}
-                        </span>
-                      ) : null}
-                      <span>{activity.title}</span>
+                    <li
+                      key={activity.id}
+                      className="flex flex-col sm:flex-row sm:items-start gap-3 rounded-md border border-border/70 p-2.5 text-sm"
+                    >
+                      <PlacePhotoThumbnail
+                        title={activity.title}
+                        locationName={activity.locationName}
+                        notes={activity.notes}
+                        destination={linkedTrip.destination}
+                        size="sm"
+                      />
+                      <div className="flex-1 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          {activity.timeSlot ? (
+                            <span className="text-xs font-semibold text-primary">
+                              {timeSlotLabels[activity.timeSlot]}
+                            </span>
+                          ) : null}
+                          {activity.estimatedCost != null ? (
+                            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                              Est. ${activity.estimatedCost}
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="font-medium text-foreground">{activity.title}</p>
+                        {activity.locationName ? (
+                          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin
+                              className="h-3 w-3 shrink-0 text-primary/70"
+                              aria-hidden="true"
+                            />
+                            {activity.locationName}
+                          </p>
+                        ) : null}
+                        {activity.notes ? (
+                          <p className="text-xs text-muted-foreground/80">
+                            {activity.notes}
+                          </p>
+                        ) : null}
+                      </div>
                     </li>
                   ))}
                 </ul>

@@ -72,6 +72,14 @@ export class PostsController {
   }
 
   @Patch(':id/publish')
+  publishPatch(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ): Promise<PostDto> {
+    return this.posts.publish(user.id, id);
+  }
+
+  @Post(':id/publish')
   publish(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
@@ -80,6 +88,14 @@ export class PostsController {
   }
 
   @Patch(':id/unpublish')
+  unpublishPatch(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ): Promise<PostDto> {
+    return this.posts.unpublish(user.id, id);
+  }
+
+  @Post(':id/unpublish')
   unpublish(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,

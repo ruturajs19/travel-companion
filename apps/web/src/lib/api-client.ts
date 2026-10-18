@@ -68,8 +68,12 @@ export async function apiFetch<T>(
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-  } catch {
-    throw new ApiUnreachableError();
+  } catch (err) {
+    throw new ApiUnreachableError(
+      err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError')
+        ? 'The request took too long. Please try again.'
+        : 'The server is waking up. Please try again in a few seconds.',
+    );
   }
 
   if (response.status === 204) {

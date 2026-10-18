@@ -49,7 +49,7 @@ export function listMyPostsRequest(token: string): Promise<PostSummary[]> {
 export function publishPostRequest(token: string, id: string): Promise<Post> {
   return apiFetch<Post>(`/posts/${id}/publish`, {
     token,
-    method: 'POST',
+    method: 'PATCH',
     cache: 'no-store',
   });
 }
@@ -57,7 +57,7 @@ export function publishPostRequest(token: string, id: string): Promise<Post> {
 export function unpublishPostRequest(token: string, id: string): Promise<void> {
   return apiFetch<void>(`/posts/${id}/unpublish`, {
     token,
-    method: 'POST',
+    method: 'PATCH',
     cache: 'no-store',
   });
 }

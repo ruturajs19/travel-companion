@@ -1,11 +1,18 @@
 import { AssistantChat } from '@/components/assistant/assistant-chat';
+import { getCurrentUser } from '@/lib/current-user';
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'AI Assistant',
 };
 
-export default function AssistantPage(): React.ReactElement {
+export default async function AssistantPage(): Promise<React.ReactElement> {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect('/sign-in');
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <header className="mb-6">

@@ -57,7 +57,7 @@ export async function generateTripAction(
   } catch (error) {
     if (error instanceof ApiUnreachableError) {
       return {
-        error: 'The server is waking up. Please try again in a few seconds.',
+        error: error.message || 'The server is waking up. Please try again in a few seconds.',
       };
     }
     if (error instanceof ApiError) {

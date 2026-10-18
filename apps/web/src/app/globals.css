@@ -38,6 +38,32 @@ body {
   font-family: var(--font-sans);
 }
 
+button,
+[role='button'],
+input[type='submit'],
+input[type='button'],
+input[type='reset'],
+summary {
+  cursor: pointer;
+}
+
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+input[type='submit']:not(:disabled),
+input[type='button']:not(:disabled),
+input[type='reset']:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+[role='button'][aria-disabled='true'],
+input[type='submit']:disabled,
+input[type='button']:disabled,
+input[type='reset']:disabled {
+  cursor: not-allowed;
+}
+
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

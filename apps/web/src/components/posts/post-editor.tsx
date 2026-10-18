@@ -14,12 +14,21 @@ export function PostEditor({
   action,
   post,
   trips,
+  defaultTripId,
+  defaultTitle,
 }: {
   action: (state: PostFormState, formData: FormData) => Promise<PostFormState>;
   post?: Post;
   trips: TripSummary[];
+  defaultTripId?: string;
+  defaultTitle?: string;
 }): React.ReactElement {
   const [state, formAction] = useActionState(action, initialState);
+
+  const markdownError =
+    state.fieldErrors?.markdown ??
+    state.fieldErrors?.['contentJson.markdown'] ??
+    state.fieldErrors?.contentJson;
 
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>
@@ -38,7 +47,7 @@ export function PostEditor({
         <Input
           id="title"
           name="title"
-          defaultValue={post?.title ?? ''}
+          defaultValue={post?.title ?? defaultTitle ?? ''}
           required
           placeholder="e.g. Three days in Kyoto"
           aria-invalid={Boolean(state.fieldErrors?.title)}
@@ -59,7 +68,11 @@ export function PostEditor({
           defaultValue={post?.contentJson.markdown ?? ''}
           placeholder={'# My trip\n\nWrite your story here...'}
           className="font-mono"
+          aria-invalid={Boolean(markdownError)}
         />
+        {markdownError ? (
+          <p className="text-sm text-red-600">{markdownError}</p>
+        ) : null}
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="tags" className="text-sm font-medium">
@@ -70,7 +83,11 @@ export function PostEditor({
           name="tags"
           defaultValue={post?.tags.join(', ') ?? ''}
           placeholder="japan, food, culture"
+          aria-invalid={Boolean(state.fieldErrors?.tags)}
         />
+        {state?.fieldErrors?.tags ? (
+          <p className="text-sm text-red-600">{state.fieldErrors.tags}</p>
+        ) : null}
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="coverImage" className="text-sm font-medium">
@@ -83,7 +100,11 @@ export function PostEditor({
           type="url"
           defaultValue={post?.coverImage ?? ''}
           placeholder="https://..."
+          aria-invalid={Boolean(state.fieldErrors?.coverImage)}
         />
+        {state?.fieldErrors?.coverImage ? (
+          <p className="text-sm text-red-600">{state.fieldErrors.coverImage}</p>
+        ) : null}
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="linkedTripId" className="text-sm font-medium">
@@ -92,16 +113,22 @@ export function PostEditor({
         <select
           id="linkedTripId"
           name="linkedTripId"
-          defaultValue={post?.linkedTripId ?? ''}
+          defaultValue={post?.linkedTripId ?? defaultTripId ?? ''}
           className="h-10 w-full rounded-[var(--radius)] border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          aria-invalid={Boolean(state.fieldErrors?.linkedTripId)}
         >
           <option value="">No linked trip</option>
           {trips.map((trip) => (
             <option key={trip.id} value={trip.id}>
-              {trip.title} . {trip.destination}
+              {trip.title} · {trip.destination}
             </option>
           ))}
         </select>
+        {state?.fieldErrors?.linkedTripId ? (
+          <p className="text-sm text-red-600">
+            {state.fieldErrors.linkedTripId}
+          </p>
+        ) : null}
       </div>
       <div className="flex gap-2">
         <IntentButton intent="draft" variant="outline">
