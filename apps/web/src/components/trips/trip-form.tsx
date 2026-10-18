@@ -4,14 +4,21 @@ import {
   GenerateFormState,
   generateTripAction,
 } from '@/app/(app)/trips/actions';
-import { useActionState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
+import { useFormStatus } from 'react-dom';
+import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
-import { SubmitButton } from '../auth/submit-button';
+import { Loader2, Sparkles } from 'lucide-react';
 
 const initialState: GenerateFormState = {};
 
-import { useState } from 'react';
+const GENERATION_STEPS = [
+  'Analyzing your destination & travel style...',
+  'Scouting top sights, boutique stays & local dining...',
+  'Structuring smart day-by-day routing with Gemini...',
+  'Finalizing details, timings & photo previews...',
+];
 
 const SUGGESTED_INTERESTS = [
   'Top Sights',
@@ -184,9 +191,74 @@ export function TripForm({
         />
       </div>
 
-      <SubmitButton pendingLabel="Generating your AI itinerary...">
-        Generate Complete Itinerary
-      </SubmitButton>
+      <TripGenerateButton />
     </form>
+  );
+}
+
+function TripGenerateButton(): React.ReactElement {
+  const { pending } = useFormStatus();
+  const [stepIndex, setStepIndex] = useState(0);
+
+  useEffect(() => {
+    if (!pending) return;
+    const timer = setInterval(() => {
+      setStepIndex((prev) =>
+        prev < GENERATION_STEPS.length - 1 ? prev + 1 : prev,
+      );
+    }, 2500);
+    return () => {
+      clearInterval(timer);
+      setStepIndex(0);
+    };
+  }, [pending]);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {pending ? (
+        <div className="flex flex-col gap-2.5 rounded-xl border border-primary/30 bg-primary/5 p-4 animate-in fade-in duration-300">
+          <div className="flex items-center justify-between text-xs font-medium text-primary">
+            <span className="flex items-center gap-1.5 font-semibold">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Crafting Your Custom Itinerary
+            </span>
+            <span>
+              Step {stepIndex + 1} of {GENERATION_STEPS.length}
+            </span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary/20">
+            <div
+              className="h-full bg-primary transition-all duration-700 ease-out"
+              style={{
+                width: `${((stepIndex + 1) / GENERATION_STEPS.length) * 100}%`,
+              }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground transition-all duration-300">
+            {GENERATION_STEPS[stepIndex]}
+          </p>
+        </div>
+      ) : null}
+
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full gap-2 font-semibold shadow-xs"
+        disabled={pending}
+        aria-busy={pending}
+      >
+        {pending ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Generating AI Itinerary...
+          </>
+        ) : (
+          <>
+            <Sparkles className="h-4 w-4" />
+            Generate Complete Itinerary
+          </>
+        )}
+      </Button>
+    </div>
   );
 }

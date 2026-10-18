@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { BlogCardPhoto, TripCardPhoto } from '@/components/trips/place-photo';
-import { SignOutButton } from '@/components/auth/sign-out-button';
 import { getCurrentUser } from '@/lib/current-user';
 import { listMyPosts } from '@/lib/posts';
 import { listTrips } from '@/lib/trips';
@@ -88,19 +87,11 @@ export default async function DashboardPage(): Promise<React.ReactElement> {
       <section className="relative overflow-hidden rounded-2xl border border-primary/25 bg-linear-to-br from-card via-card to-primary/10 p-6 shadow-sm sm:p-8">
         <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
               <Sparkles className="h-3.5 w-3.5" />
               AI-Powered Travel Companion
             </span>
-            {user ? (
-              <div className="flex items-center gap-2 rounded-full border border-border/80 bg-background/80 py-1 pl-3 pr-1.5 shadow-2xs backdrop-blur-xs">
-                <span className="max-w-44 truncate text-xs text-muted-foreground" title={user.email}>
-                  {user.email}
-                </span>
-                <SignOutButton variant="outline" />
-              </div>
-            ) : null}
           </div>
 
           <div>
