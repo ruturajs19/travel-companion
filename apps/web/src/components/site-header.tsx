@@ -1,6 +1,6 @@
-import { logoutAction } from '@/app/(auth)/actions';
 import { CurrentUser } from '@/lib/current-user';
-import { Compass, LogOut } from 'lucide-react';
+import { UserNav } from '@/components/layout/user-nav';
+import { Compass } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
 
@@ -21,8 +21,6 @@ export function SiteHeader({ user }: SiteHeaderProps): React.ReactElement {
         { href: '/trips', label: 'Trips' },
         { href: '/posts', label: 'Blog' },
       ];
-
-  const userInitial = user?.email?.charAt(0).toUpperCase() ?? 'U';
 
   return (
     <header className="border-b border-border bg-background/95 backdrop-blur-xs sticky top-0 z-40">
@@ -55,24 +53,7 @@ export function SiteHeader({ user }: SiteHeaderProps): React.ReactElement {
                 <span>Dashboard</span>
               </Button>
             </Link>
-            <div className="flex items-center gap-2">
-              <div
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
-                title={user.email}
-              >
-                {userInitial}
-              </div>
-              <form action={logoutAction}>
-                <button
-                  type="submit"
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
-                  title="Sign out"
-                  aria-label="Sign out"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </form>
-            </div>
+            <UserNav user={user} showName={true} align="right" />
           </div>
         ) : (
           <div className="flex items-center gap-2">

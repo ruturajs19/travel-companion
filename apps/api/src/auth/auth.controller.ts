@@ -94,8 +94,18 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  me(@CurrentUser() user: AuthenticatedUser): { id: string; email: string } {
-    return { id: user.id, email: user.email };
+  me(@CurrentUser() user: AuthenticatedUser): {
+    id: string;
+    email: string;
+    name?: string | null;
+    image?: string | null;
+  } {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+    };
   }
 
   @Get('google')

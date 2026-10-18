@@ -45,8 +45,18 @@ export function logoutRequest(refreshToken: string): Promise<void> {
 
 export function meRequest(
   accessToken: string,
-): Promise<{ id: string; email: string }> {
-  return apiFetch<{ id: string; email: string }>('/auth/me', {
+): Promise<{
+  id: string;
+  email: string;
+  name?: string | null;
+  image?: string | null;
+}> {
+  return apiFetch<{
+    id: string;
+    email: string;
+    name?: string | null;
+    image?: string | null;
+  }>('/auth/me', {
     token: accessToken,
     cache: 'no-store',
   });

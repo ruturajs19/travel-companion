@@ -1,7 +1,11 @@
 'use client';
 
 import { CurrentUser } from '@/lib/current-user';
-import { SignOutButton } from '@/components/auth/sign-out-button';
+import {
+  getUserDisplayName,
+  getUserInitials,
+  UserNav,
+} from '@/components/layout/user-nav';
 import {
   Bot,
   Compass,
@@ -70,9 +74,8 @@ export function AppShell({
     });
   }
 
-  const userInitial = user?.email
-    ? user.email.charAt(0).toUpperCase()
-    : 'U';
+  const displayName = getUserDisplayName(user);
+  const userInitials = getUserInitials(user);
 
   return (
     <div className="flex min-h-dvh flex-col sm:flex-row">
@@ -95,15 +98,7 @@ export function AppShell({
 
         <div className="flex items-center gap-2">
           {user ? (
-            <>
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
-                title={user.email}
-              >
-                {userInitial}
-              </div>
-              <SignOutButton variant="outline" />
-            </>
+            <UserNav user={user} showName={false} align="right" />
           ) : (
             <Link
               href="/sign-in"
@@ -174,23 +169,41 @@ export function AppShell({
 
             <div className="mt-auto border-t border-border pt-4">
               {user ? (
-                <div className="flex items-center gap-2.5 px-1 py-1">
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted"
+                >
                   <div
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
-                    title={user.email}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-xs font-semibold text-primary ring-1 ring-primary/20"
+                    title={displayName}
                   >
-                    {userInitial}
+                    {user.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={user.image}
+                        alt={displayName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span>{userInitials}</span>
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p
-                      className="truncate text-xs font-medium text-foreground"
+                      className="truncate text-xs font-semibold text-foreground"
+                      title={displayName}
+                    >
+                      {displayName}
+                    </p>
+                    <p
+                      className="truncate text-[10px] text-muted-foreground"
                       title={user.email}
                     >
                       {user.email}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">Explorer</p>
                   </div>
-                </div>
+                </Link>
               ) : (
                 <Link
                   href="/sign-in"
@@ -279,29 +292,45 @@ export function AppShell({
         {/* Sidebar Footer User Info */}
         <div className="mt-auto border-t border-border pt-3">
           {user ? (
-            <div
-              className={`flex items-center gap-2.5 px-1 py-1 ${
-                collapsed ? 'justify-center' : ''
+            <Link
+              href="/profile"
+              title={collapsed ? displayName : undefined}
+              className={`flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-muted ${
+                collapsed ? 'justify-center p-1.5' : ''
               }`}
             >
               <div
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
-                title={user.email}
+                className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-xs font-semibold text-primary ring-1 ring-primary/20"
+                title={displayName}
               >
-                {userInitial}
+                {user.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.image}
+                    alt={displayName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span>{userInitials}</span>
+                )}
               </div>
               {!collapsed ? (
                 <div className="min-w-0 flex-1">
                   <p
-                    className="truncate text-xs font-medium text-foreground"
+                    className="truncate text-xs font-semibold text-foreground"
+                    title={displayName}
+                  >
+                    {displayName}
+                  </p>
+                  <p
+                    className="truncate text-[10px] text-muted-foreground"
                     title={user.email}
                   >
                     {user.email}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">Explorer</p>
                 </div>
               ) : null}
-            </div>
+            </Link>
           ) : (
             <Link
               href="/sign-in"
@@ -319,7 +348,7 @@ export function AppShell({
       {/* ── Main Content Area ── */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Desktop Top Header Bar (Fixed / Sticky) */}
-        <header className="sticky top-0 z-10 hidden h-14 items-center justify-between border-b border-border/70 bg-background/80 px-6 backdrop-blur-md sm:flex">
+        <header className="sticky top-0 z-30 hidden h-14 items-center justify-between border-b border-border/70 bg-background/80 px-6 backdrop-blur-md sm:flex">
           <div className="flex items-center gap-3">
             {collapsed ? (
               <button
@@ -341,23 +370,7 @@ export function AppShell({
 
           <div className="flex items-center gap-3">
             {user ? (
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
-                    title={user.email}
-                  >
-                    {userInitial}
-                  </div>
-                  <span
-                    className="max-w-48 truncate text-xs font-medium text-foreground"
-                    title={user.email}
-                  >
-                    {user.email}
-                  </span>
-                </div>
-                <SignOutButton variant="outline" />
-              </div>
+              <UserNav user={user} showName={true} align="right" />
             ) : (
               <Link
                 href="/sign-in"

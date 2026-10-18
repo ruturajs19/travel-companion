@@ -4,6 +4,8 @@ import { getAccessToken, getRefreshToken, setSession } from './session';
 export interface CurrentUser {
   id: string;
   email: string;
+  name?: string | null;
+  image?: string | null;
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
