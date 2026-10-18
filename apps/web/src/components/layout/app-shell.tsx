@@ -21,7 +21,29 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
+
+function subscribeToSidebar(callback: () => void) {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener('storage', callback);
+  window.addEventListener('tc_sidebar_toggle', callback);
+  return () => {
+    window.removeEventListener('storage', callback);
+    window.removeEventListener('tc_sidebar_toggle', callback);
+  };
+}
+
+function getSidebarSnapshot(): boolean {
+  try {
+    return localStorage.getItem('tc_sidebar_collapsed') === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function getSidebarServerSnapshot(): boolean {
+  return false;
+}
 
 const sidebarLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -40,14 +62,11 @@ export function AppShell({
   children: React.ReactNode;
 }): React.ReactElement {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      return localStorage.getItem('tc_sidebar_collapsed') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const collapsed = useSyncExternalStore(
+    subscribeToSidebar,
+    getSidebarSnapshot,
+    getSidebarServerSnapshot,
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Keyboard shortcut (Ctrl+B or Cmd+B) to toggle sidebar
@@ -63,15 +82,13 @@ export function AppShell({
   }, []);
 
   function toggleCollapsed() {
-    setCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('tc_sidebar_collapsed', String(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
+    try {
+      const next = !getSidebarSnapshot();
+      localStorage.setItem('tc_sidebar_collapsed', String(next));
+      window.dispatchEvent(new Event('tc_sidebar_toggle'));
+    } catch {
+      // ignore
+    }
   }
 
   const displayName = getUserDisplayName(user);

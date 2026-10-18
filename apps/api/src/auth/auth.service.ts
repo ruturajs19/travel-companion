@@ -75,8 +75,13 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
-    if (!user || !user.passwordHash) {
+    if (!user) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+    if (!user.passwordHash) {
+      throw new UnauthorizedException(
+        'This account was registered with Google. Please sign in with Google.',
+      );
     }
     const isPasswordValid = await this.passwords.verify(
       user.passwordHash,

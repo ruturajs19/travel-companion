@@ -10,7 +10,7 @@ import { UsersModule } from './users/users.module.js';
 import { AiModule } from './ai/ai.module.js';
 import { PostsModule } from './posts/posts.module.js';
 import { TripsModule } from './trips/trips.module.js';
-import { DiscoveryModule } from '@nestjs/core';
+import { DiscoveryModule } from './discovery/discovery.module.js';
 import { AssistantModule } from './assistant/assistant.module.js';
 import { SocialModule } from './social/social.module.js';
 
